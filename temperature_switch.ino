@@ -129,11 +129,11 @@
 
 // 午後の時間帯の温度をあげる日の入り前の時間(分)
 #define MIN_PLUS_END_TEMPERATURE_SSBTIME  (1 * 60)
-#define MAX_PLUS_END_TEMPERATURE_SSBTIME  (4 * 60)
+#define MAX_PLUS_END_TEMPERATURE_SSBTIME  (5 * 60)
 
 // 午後の時間帯の温度をあげる日の入り前の時間2(分)
 #define MIN_PLUS_END_TEMPERATURE_SSBTIME2  (1 * 60)
-#define MAX_PLUS_END_TEMPERATURE_SSBTIME2  (2 * 60)
+#define MAX_PLUS_END_TEMPERATURE_SSBTIME2  (3 * 60)
 
 //
 // 設定変更
