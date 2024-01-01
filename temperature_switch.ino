@@ -1,3 +1,4 @@
+#include <avr/wdt.h>
 #include <Wire.h>
 #include <DS3232RTC.h>
 #include <TimeLib.h>
@@ -762,6 +763,8 @@ void displayLCD(char lcdLines[LCD_ROWS][LCD_BUFFER_SIZE])
 
 void setup()
 {
+  wdt_enable(WDTO_8S);  // フリーズ対応
+
   Serial.begin(115200);
 
   Wire.begin();
@@ -907,4 +910,6 @@ void loop()
   servoWrite(gTemperature);
 
   delay(200);
+
+  wdt_reset();
 }
