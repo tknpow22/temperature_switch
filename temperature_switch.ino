@@ -109,11 +109,11 @@
 //
 
 // 初期温度(朝の温度)
-#define MIN_START_TEMPERATURE 18
+#define MIN_START_TEMPERATURE 16
 #define MAX_START_TEMPERATURE 26
 
 // 最終温度(昼前の温度)
-#define MIN_END_TEMPERATURE 22
+#define MIN_END_TEMPERATURE 18
 #define MAX_END_TEMPERATURE MAX_TEMPERATURE
 
 // 処理開始から最終温度に達するまでの時間(分)
