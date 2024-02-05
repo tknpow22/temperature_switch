@@ -80,15 +80,15 @@
 // 温度設定
 //
 
-// 温度設定の最大・最小
+// 温度設定の最小・最大
 #define MIN_TEMPERATURE 11
 #define MAX_TEMPERATURE 34
 
-// 温度設定に対応する角度の最大・最小
+// 温度設定に対応する角度の最小・最大
 //#define MIN_TEMPERATURE_ANGLE 0
 #define MAX_TEMPERATURE_ANGLE 180
 
-// 角度補正の最大・最小
+// 角度補正の最小・最大
 #define MIN_ANGLE_CORRECTION  -9
 #define MAX_ANGLE_CORRECTION  9
 
@@ -96,7 +96,7 @@
 // 日の出・日の入り時刻取得
 //
 
-// 日の出から処理開始までの時間(分)
+// 日の出から処理開始までの時間(分)の最小・最大
 #define MIN_AM_START_SRATIME  0
 #define MAX_AM_START_SRATIME  (3 * 60)
 
@@ -108,33 +108,33 @@
 // 温度指定
 //
 
-// 午前の初期温度
+// 午前の初期温度の最小・最大
 #define MIN_AM_START_TEMPERATURE 16
 #define MAX_AM_START_TEMPERATURE 26
 
-// 午前の最終温度
+// 午前の最終温度の最小・最大
 #define MIN_AM_END_TEMPERATURE 18
 #define MAX_AM_END_TEMPERATURE MAX_TEMPERATURE
 
-// 処理開始から最終温度に達するまでの時間(分)
+// 処理開始から午前の最終温度に達するまでの時間(分)の最小・最大
 #define MIN_AM_END_TEMPERATURE_TIME  (0)
 #define MAX_AM_END_TEMPERATURE_TIME  (6 * 60)
 
-// 午後の追加温度
-#define MIN_PLUS_PM_TEMPERATURE  0
-#define MAX_PLUS_PM_TEMPERATURE  5
+// 午後温度で追加する温度の最小・最大
+#define MIN_PM_PLUS_TEMPERATURE  0
+#define MAX_PM_PLUS_TEMPERATURE  5
 
-// 午後の追加温度2
-#define MIN_PLUS_END_TEMPERATURE2  0
-#define MAX_PLUS_END_TEMPERATURE2  5
+// 午後温度2で追加する温度の最小・最大
+#define MIN_PM_PLUS_TEMPERATURE2  0
+#define MAX_PM_PLUS_TEMPERATURE2  5
 
-// 午後温度の開始時刻(分)
-#define MIN_PLUS_PM_TEMPERATURE_TIME  (10 * 60)
-#define MAX_PLUS_PM_TEMPERATURE_TIME  (19 * 60)
+// 午後温度の開始時刻(分)の最小・最大
+#define MIN_PM_PLUS_TEMPERATURE_TIME  (10 * 60)
+#define MAX_PM_PLUS_TEMPERATURE_TIME  (19 * 60)
 
-// 午後温度2の開始時刻(分)(日の入り前の時間)
-#define MIN_PLUS_END_TEMPERATURE_SSBTIME2  (0)
-#define MAX_PLUS_END_TEMPERATURE_SSBTIME2  (5 * 60)
+// 午後温度2を開始する日の入り前の時間(分)の最小・最大
+#define MIN_PM_PLUS_TEMPERATURE2_SSBTIME  (0)
+#define MAX_PM_PLUS_TEMPERATURE2_SSBTIME  (5 * 60)
 
 //
 // 設定変更
@@ -145,12 +145,12 @@
 #define SET_AM_START_TEMPERATURE 0 // 午前の初期温度
 #define SET_AM_END_TEMPERATURE 1 // 午前の最終温度
 #define SET_AM_START_SRATIME  2 // 日の出から処理開始までの時間(分)
-#define SET_AM_END_TEMPERATURE_TIME  3 // 処理開始から最終温度に達するまでの時間(分)
+#define SET_AM_END_TEMPERATURE_TIME  3 // 処理開始から午前の最終温度に達するまでの時間(分)
 #define SET_ANGLE_CORRECTION  4 // 角度補正
 #define SET_PLUS_PM_TEMPERATURE_TIME  5 // 午後温度の開始時刻(分)
-#define SET_PLUS_PM_TEMPERATURE  6 // 午後の追加温度
-#define SET_PLUS_END_TEMPERATURE_SSBTIME2  7 // 午後温度2の日の入り前の時間(分)
-#define SET_PLUS_END_TEMPERATURE2  8 // 午後温度2の追加温度
+#define SET_PLUS_PM_TEMPERATURE  6 // 午後温度での追加温度
+#define SET_PLUS_END_TEMPERATURE_SSBTIME2  7 // 午後温度2を開始する日の入り前の時間(分)
+#define SET_PLUS_END_TEMPERATURE2  8 // 午後温度2での追加温度
 
 #define MIN_SET_MODE_KIND SET_AM_START_TEMPERATURE  // 設定種別の最小値
 #define MAX_SET_MODE_KIND SET_PLUS_END_TEMPERATURE2  // 設定種別の最大値
@@ -183,14 +183,14 @@ struct TemperatureSwitchBag {
   char typeBegin;
   int typeVersion;
   int amStartSRATime; // 日の出から処理開始までの時間(分)  
-  int amEndTemperatureTime;  // 処理開始から最終温度に達するまでの時間(分)
+  int amEndTemperatureTime;  // 処理開始から午前の最終温度に達するまでの時間(分)
   int amStartTemperature;  // 午前の初期温度
   int amEndTemperature;  // 午前の最終温度
   int angleCorrection; // 角度補正
-  int plusPmTempretureTime; // 午後温度の開始時刻(分)
-  int plusPmTempreture; // 午後の時間帯の追加温度
-  int plusEndTempretureSSBTime2;  // 午後の時間帯の温度をあげる日の入り前の時刻2(分)
-  int plusEndTempreture2; // 午後の時間帯の追加温度2
+  int pmPlusTempretureTime; // 午後温度の開始時刻(分)
+  int pmPlusTempreture; // 午後温度での追加温度
+  int pmPlusTempreture2SSBTime;  // 午後温度2を開始する日の入り前の時間(分)
+  int pmPlusTempreture2; // 午後温度2での追加温度
   char typeEnd;
 };
 
@@ -226,7 +226,7 @@ Dusk2Dawn gDusk2Dawn(Latitude, Longitude, 9/*timezone*/);
 
 // 現在の温度設定
 int gTemperature = MAX_TEMPERATURE;
-int gPrevTemperature = 0; // 直前の設定
+int gPrevTemperature = 0; // 直前の設定を保持する
 
 // Dusk2Dawn を何度も呼び出さないために、日付、日の出・日の入り時刻をキャッシュする
 unsigned long gPrevSunriseYMD = 0;
@@ -408,13 +408,11 @@ void processAutoMode(const tmElements_t& tm, int sunriseTime, int sunsetTime)
 {
   int currentTime = tm.Hour * 60 + tm.Minute;
 
-  // sunriseTime および sunsetTime には深夜 0 時から日の出時刻までの時間が分で入っている。
-  // NOTE: 取得に失敗している場合は共にマイナスの値が設定されている。
+  // sunriseTime および sunsetTime には日の出時刻および日の入り時刻が、深夜 0 時からの時間(分)で入っている。
+  // NOTE: 取得に失敗している場合は共にマイナスの値が設定される。
   if (0 <= sunriseTime) {
 
-    // 処理開始時刻(分)
     int startTime = sunriseTime + gTSB.amStartSRATime;
-    // 最終温度に達する時刻(分)
     int endTime = startTime + gTSB.amEndTemperatureTime;
 
     if (currentTime < sunriseTime) {
@@ -447,11 +445,10 @@ void processAutoMode(const tmElements_t& tm, int sunriseTime, int sunsetTime)
     }
   }
 
-  // 午後温度の開始時刻(分)を過ぎた場合
   if (0 <= sunsetTime) {
-    if ((currentTime < sunriseTime || gTSB.plusPmTempretureTime <= currentTime) && 0 < gTSB.plusPmTempreture) {
-      // 日の出前または午後温度の開始時刻(分)を過ぎた
-      int plusTempreture = gTemperature + gTSB.plusPmTempreture;
+    if ((currentTime < sunriseTime || gTSB.pmPlusTempretureTime <= currentTime) && 0 < gTSB.pmPlusTempreture) {
+      // 日の出前または午後温度の開始時刻(分)を過ぎた場合
+      int plusTempreture = gTemperature + gTSB.pmPlusTempreture;
       if (MAX_TEMPERATURE < plusTempreture) {
         plusTempreture = MAX_TEMPERATURE;
       }
@@ -459,12 +456,11 @@ void processAutoMode(const tmElements_t& tm, int sunriseTime, int sunsetTime)
     }
   }
 
-  // 午後の時間帯の温度をあげたい場合2
   if (0 <= sunsetTime) {
-    int plusStartTime = sunsetTime - gTSB.plusEndTempretureSSBTime2;
-    if ((currentTime < sunriseTime || plusStartTime <= currentTime) && 0 < gTSB.plusEndTempreture2) {
-      // 日の出前または午後の時間帯の温度をあげる日の入り前の時刻2(分)を過ぎた
-      int plusTempreture = gTemperature + gTSB.plusEndTempreture2;
+    int plusStartTime = sunsetTime - gTSB.pmPlusTempreture2SSBTime;
+    if ((currentTime < sunriseTime || plusStartTime <= currentTime) && 0 < gTSB.pmPlusTempreture2) {
+      // 日の出前または午後温度2を開始する日の入り前の時間(分)を過ぎた場合
+      int plusTempreture = gTemperature + gTSB.pmPlusTempreture2;
       if (MAX_TEMPERATURE < plusTempreture) {
         plusTempreture = MAX_TEMPERATURE;
       }
@@ -510,13 +506,13 @@ void processSetMode(int tempDown, int tempUp)
     } else if (gSetModeKind == SET_ANGLE_CORRECTION) {
       gTSB.angleCorrection = decValue(gTSB.angleCorrection, MIN_ANGLE_CORRECTION);
     } else if (gSetModeKind == SET_PLUS_PM_TEMPERATURE_TIME) {
-      gTSB.plusPmTempretureTime = decValue(gTSB.plusPmTempretureTime, MIN_PLUS_PM_TEMPERATURE_TIME, 10);
+      gTSB.pmPlusTempretureTime = decValue(gTSB.pmPlusTempretureTime, MIN_PM_PLUS_TEMPERATURE_TIME, 10);
     } else if (gSetModeKind == SET_PLUS_PM_TEMPERATURE) {
-      gTSB.plusPmTempreture = decValue(gTSB.plusPmTempreture, MIN_PLUS_PM_TEMPERATURE);
+      gTSB.pmPlusTempreture = decValue(gTSB.pmPlusTempreture, MIN_PM_PLUS_TEMPERATURE);
     } else if (gSetModeKind == SET_PLUS_END_TEMPERATURE_SSBTIME2) {
-      gTSB.plusEndTempretureSSBTime2 = decValue(gTSB.plusEndTempretureSSBTime2, MIN_PLUS_END_TEMPERATURE_SSBTIME2, 10);
+      gTSB.pmPlusTempreture2SSBTime = decValue(gTSB.pmPlusTempreture2SSBTime, MIN_PM_PLUS_TEMPERATURE2_SSBTIME, 10);
     } else if (gSetModeKind == SET_PLUS_END_TEMPERATURE2) {
-      gTSB.plusEndTempreture2 = decValue(gTSB.plusEndTempreture2, MIN_PLUS_END_TEMPERATURE2);
+      gTSB.pmPlusTempreture2 = decValue(gTSB.pmPlusTempreture2, MIN_PM_PLUS_TEMPERATURE2);
     }
   } else if (tempUp == BUTTON_ON) {
     if (gSetModeKind == SET_AM_START_SRATIME) {
@@ -533,13 +529,13 @@ void processSetMode(int tempDown, int tempUp)
     } else if (gSetModeKind == SET_ANGLE_CORRECTION) {
       gTSB.angleCorrection = incValue(gTSB.angleCorrection, MAX_ANGLE_CORRECTION);
     } else if (gSetModeKind == SET_PLUS_PM_TEMPERATURE_TIME) {
-      gTSB.plusPmTempretureTime = incValue(gTSB.plusPmTempretureTime, MAX_PLUS_PM_TEMPERATURE_TIME, 10);
+      gTSB.pmPlusTempretureTime = incValue(gTSB.pmPlusTempretureTime, MAX_PM_PLUS_TEMPERATURE_TIME, 10);
     } else if (gSetModeKind == SET_PLUS_PM_TEMPERATURE) {
-      gTSB.plusPmTempreture = incValue(gTSB.plusPmTempreture, MAX_PLUS_PM_TEMPERATURE);
+      gTSB.pmPlusTempreture = incValue(gTSB.pmPlusTempreture, MAX_PM_PLUS_TEMPERATURE);
     } else if (gSetModeKind == SET_PLUS_END_TEMPERATURE_SSBTIME2) {
-      gTSB.plusEndTempretureSSBTime2 = incValue(gTSB.plusEndTempretureSSBTime2, MAX_PLUS_END_TEMPERATURE_SSBTIME2, 10);
+      gTSB.pmPlusTempreture2SSBTime = incValue(gTSB.pmPlusTempreture2SSBTime, MAX_PM_PLUS_TEMPERATURE2_SSBTIME, 10);
     } else if (gSetModeKind == SET_PLUS_END_TEMPERATURE2) {
-      gTSB.plusEndTempreture2 = incValue(gTSB.plusEndTempreture2, MAX_PLUS_END_TEMPERATURE2);
+      gTSB.pmPlusTempreture2 = incValue(gTSB.pmPlusTempreture2, MAX_PM_PLUS_TEMPERATURE2);
     }
   }
 }
@@ -642,23 +638,22 @@ void processDisplayStrings(char lcdLines[LCD_ROWS][LCD_BUFFER_SIZE], const tmEle
         gTSB.angleCorrection
       );
   }
-  // 例: "B14-1539A0B14-1539A0"
   // 例: "P1229A0 B14-1539A0  "
   {
-    int plusStartTime2 = sunsetTime - gTSB.plusEndTempretureSSBTime2;
+    int plusStartTime2 = sunsetTime - gTSB.pmPlusTempreture2SSBTime;
     sprintf(lcdLines[3], "%c%02d%02d%c%01d %c%01d%01d-%02d%02d%c%01d  ",
         (gMode == SET_MODE && gSetModeKind == SET_PLUS_PM_TEMPERATURE_TIME) ? 'p' : 'P',
-        gTSB.plusPmTempretureTime / 60,
-        gTSB.plusPmTempretureTime % 60,
+        gTSB.pmPlusTempretureTime / 60,
+        gTSB.pmPlusTempretureTime % 60,
         (gMode == SET_MODE && gSetModeKind == SET_PLUS_PM_TEMPERATURE) ? 'a' : 'A',
-        gTSB.plusPmTempreture,
+        gTSB.pmPlusTempreture,
         (gMode == SET_MODE && gSetModeKind == SET_PLUS_END_TEMPERATURE_SSBTIME2) ? 'b' : 'B',
-        gTSB.plusEndTempretureSSBTime2 / 60,
-        (gTSB.plusEndTempretureSSBTime2 % 60) / 10,
+        gTSB.pmPlusTempreture2SSBTime / 60,
+        (gTSB.pmPlusTempreture2SSBTime % 60) / 10,
         plusStartTime2 / 60,
         plusStartTime2 % 60,
         (gMode == SET_MODE && gSetModeKind == SET_PLUS_END_TEMPERATURE2) ? 'a' : 'A',
-        gTSB.plusEndTempreture2
+        gTSB.pmPlusTempreture2
       );
   }
 }
@@ -713,15 +708,15 @@ void loadTemperatureSwitchBag()
     gTSB.typeBegin = TSB_TYPE_BEGIN;
     gTSB.typeVersion = TSB_TYPE_VERSION;
     //
-    gTSB.amStartSRATime = (2 * 60); // 日の出から処理開始までの時間(分)  
-    gTSB.amEndTemperatureTime = (2 * 60);  // 処理開始から最終温度に達するまでの時間(分)
-    gTSB.amStartTemperature = 20;  // 初期温度(朝の温度)
-    gTSB.amEndTemperature = 28;  // 最終温度(昼前の温度)
-    gTSB.angleCorrection = 0; // 角度補正
-    gTSB.plusPmTempretureTime = (12 * 60);  // 午後温度の開始時刻(分)
-    gTSB.plusPmTempreture = MIN_PLUS_PM_TEMPERATURE; // 午後の時間帯の追加温度
-    gTSB.plusEndTempretureSSBTime2 = (1 * 60);  // 午後の時間帯の温度をあげる日の入り前の時刻2(分)
-    gTSB.plusEndTempreture2 = MIN_PLUS_END_TEMPERATURE2; // 午後の時間帯の追加温度2
+    gTSB.amStartSRATime = (2 * 60);
+    gTSB.amEndTemperatureTime = (2 * 60);
+    gTSB.amStartTemperature = 20;
+    gTSB.amEndTemperature = 28;
+    gTSB.angleCorrection = 0;
+    gTSB.pmPlusTempretureTime = (12 * 60);
+    gTSB.pmPlusTempreture = MIN_PM_PLUS_TEMPERATURE;
+    gTSB.pmPlusTempreture2SSBTime = (1 * 60);
+    gTSB.pmPlusTempreture2 = MIN_PM_PLUS_TEMPERATURE2;
     //
     gTSB.typeEnd = TSB_TYPE_END;
   }
@@ -824,6 +819,10 @@ void loop()
   int sunriseTime = getSunriseTime(tm.Year + 1970, tm.Month, tm.Day);
   int sunsetTime = getSunsetTime(tm.Year + 1970, tm.Month, tm.Day);
 
+  //
+  // タクトスイッチが押されている場合の処理
+  //
+
   if (autoMode == BUTTON_ON) {
     ++gSetTimeModeTransCount;
   } else if (autoMode == BUTTON_OFF) {
@@ -878,6 +877,10 @@ void loop()
     }
   }
 
+  //
+  // 現在のモードにあわせて処理を行う
+  //
+
   if (gMode == AUTO_MODE) {
     // 自動
     processAutoMode(tm, sunriseTime, sunsetTime);
@@ -895,6 +898,7 @@ void loop()
     processSetTimeMode(tempDown, tempUp);
   }
 
+  // LCD へ表示する文字列を作成する
   if (gMode != SET_TIME_MODE) {
     processDisplayStrings(lcdLines, tm, sunriseTime, sunsetTime);
   } else {
