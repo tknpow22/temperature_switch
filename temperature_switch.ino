@@ -426,7 +426,6 @@ void processAutoMode(const tmElements_t& tm, int sunriseTime, int sunsetTime)
       int tempSpan = gTSB.amEndTemperature - gTSB.amStartTemperature;
       if (0 < tempSpan) {
         int timeRange = timeSpan / tempSpan;
-
         int timeStep = startTime;
         int setTemperature = gTSB.amStartTemperature;
 
@@ -441,6 +440,8 @@ void processAutoMode(const tmElements_t& tm, int sunriseTime, int sunsetTime)
         if (gTSB.amEndTemperature < setTemperature) {
           gTemperature = gTSB.amEndTemperature;
         }
+      } else /* tempSpan == 0 */ {
+        gTemperature = gTSB.amEndTemperature;
       }
     }
   }
@@ -500,8 +501,8 @@ void processSetMode(int tempDown, int tempUp)
       gTSB.amStartTemperature = decValue(gTSB.amStartTemperature, MIN_AM_START_TEMPERATURE);
     } else if (gSetModeKind == SET_AM_END_TEMPERATURE) {
       gTSB.amEndTemperature = decValue(gTSB.amEndTemperature, MIN_AM_END_TEMPERATURE);
-      if (gTSB.amEndTemperature < gTSB.amStartTemperature + 1) {
-        gTSB.amEndTemperature = gTSB.amStartTemperature + 1;
+      if (gTSB.amEndTemperature <= gTSB.amStartTemperature) {
+        gTSB.amEndTemperature = gTSB.amStartTemperature;
       }
     } else if (gSetModeKind == SET_ANGLE_CORRECTION) {
       gTSB.angleCorrection = decValue(gTSB.angleCorrection, MIN_ANGLE_CORRECTION);
@@ -521,8 +522,8 @@ void processSetMode(int tempDown, int tempUp)
       gTSB.amEndTemperatureTime = incValue(gTSB.amEndTemperatureTime, MAX_AM_END_TEMPERATURE_TIME, 10);
     } else if (gSetModeKind == SET_AM_START_TEMPERATURE) {
       gTSB.amStartTemperature = incValue(gTSB.amStartTemperature, MAX_AM_START_TEMPERATURE);
-      if (gTSB.amEndTemperature - 1 < gTSB.amStartTemperature) {
-        gTSB.amStartTemperature = gTSB.amEndTemperature - 1;
+      if (gTSB.amEndTemperature <= gTSB.amStartTemperature) {
+        gTSB.amStartTemperature = gTSB.amEndTemperature;
       }
     } else if (gSetModeKind == SET_AM_END_TEMPERATURE) {
       gTSB.amEndTemperature = incValue(gTSB.amEndTemperature, MAX_AM_END_TEMPERATURE);
