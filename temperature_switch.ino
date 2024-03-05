@@ -109,11 +109,11 @@
 //
 
 // 午前の初期温度の最小・最大
-#define MIN_AM_START_TEMPERATURE 16
-#define MAX_AM_START_TEMPERATURE 26
+#define MIN_AM_START_TEMPERATURE 14
+#define MAX_AM_START_TEMPERATURE 28
 
 // 午前の最終温度の最小・最大
-#define MIN_AM_END_TEMPERATURE 18
+#define MIN_AM_END_TEMPERATURE 16
 #define MAX_AM_END_TEMPERATURE MAX_TEMPERATURE
 
 // 処理開始から午前の最終温度に達するまでの時間(分)の最小・最大
@@ -144,16 +144,15 @@
 #define SET_UNDEFINED (-1)  // 未定義
 #define SET_AM_START_TEMPERATURE 0 // 午前の初期温度
 #define SET_AM_END_TEMPERATURE 1 // 午前の最終温度
-#define SET_AM_START_SRATIME  2 // 日の出から処理開始までの時間(分)
-#define SET_AM_END_TEMPERATURE_TIME  3 // 処理開始から午前の最終温度に達するまでの時間(分)
-#define SET_ANGLE_CORRECTION  4 // 角度補正
-#define SET_PLUS_PM_TEMPERATURE_TIME  5 // 午後温度の開始時刻(分)
-#define SET_PLUS_PM_TEMPERATURE  6 // 午後温度での追加温度
-#define SET_PLUS_END_TEMPERATURE_SSBTIME2  7 // 午後温度2を開始する日の入り前の時間(分)
-#define SET_PLUS_END_TEMPERATURE2  8 // 午後温度2での追加温度
-
+#define SET_PLUS_PM_TEMPERATURE_TIME  2 // 午後温度の開始時刻(分)
+#define SET_PLUS_PM_TEMPERATURE  3 // 午後温度での追加温度
+#define SET_PLUS_END_TEMPERATURE_SSBTIME2  4 // 午後温度2を開始する日の入り前の時間(分)
+#define SET_PLUS_END_TEMPERATURE2  5 // 午後温度2での追加温度
+#define SET_AM_START_SRATIME  6 // 日の出から処理開始までの時間(分)
+#define SET_AM_END_TEMPERATURE_TIME  7 // 処理開始から午前の最終温度に達するまでの時間(分)
+#define SET_ANGLE_CORRECTION  8 // 角度補正
 #define MIN_SET_MODE_KIND SET_AM_START_TEMPERATURE  // 設定種別の最小値
-#define MAX_SET_MODE_KIND SET_PLUS_END_TEMPERATURE2  // 設定種別の最大値
+#define MAX_SET_MODE_KIND SET_ANGLE_CORRECTION  // 設定種別の最大値
 
 //
 // 時刻設定
@@ -620,29 +619,10 @@ void processDisplayStrings(char lcdLines[LCD_ROWS][LCD_BUFFER_SIZE], const tmEle
       gTSB.amEndTemperature
     );
 
-  // 例: "S13-0753E33-0933 C00"
-  {
-    int startTime = sunriseTime + gTSB.amStartSRATime;
-    int endTime = startTime + gTSB.amEndTemperatureTime;
-    sprintf(lcdLines[2], "%c%01d%01d-%02d%02d%c%01d%01d-%02d%02d %c%02d",
-        (gMode == SET_MODE && gSetModeKind == SET_AM_START_SRATIME) ? 's' : 'S',
-        gTSB.amStartSRATime / 60,
-        (gTSB.amStartSRATime % 60) / 10,
-        startTime / 60,
-        startTime % 60,
-        (gMode == SET_MODE && gSetModeKind == SET_AM_END_TEMPERATURE_TIME) ? 'e' : 'E',
-        gTSB.amEndTemperatureTime / 60,
-        (gTSB.amEndTemperatureTime % 60) / 10,
-        endTime / 60,
-        endTime % 60,
-        (gMode == SET_MODE && gSetModeKind == SET_ANGLE_CORRECTION) ? 'c' : 'C',
-        gTSB.angleCorrection
-      );
-  }
   // 例: "P1229A0 B14-1539A0  "
   {
     int plusStartTime2 = sunsetTime - gTSB.pmPlusTempreture2SSBTime;
-    sprintf(lcdLines[3], "%c%02d%02d%c%01d %c%01d%01d-%02d%02d%c%01d  ",
+    sprintf(lcdLines[2], "%c%02d%02d%c%01d %c%01d%01d-%02d%02d%c%01d  ",
         (gMode == SET_MODE && gSetModeKind == SET_PLUS_PM_TEMPERATURE_TIME) ? 'p' : 'P',
         gTSB.pmPlusTempretureTime / 60,
         gTSB.pmPlusTempretureTime % 60,
@@ -655,6 +635,26 @@ void processDisplayStrings(char lcdLines[LCD_ROWS][LCD_BUFFER_SIZE], const tmEle
         plusStartTime2 % 60,
         (gMode == SET_MODE && gSetModeKind == SET_PLUS_END_TEMPERATURE2) ? 'a' : 'A',
         gTSB.pmPlusTempreture2
+      );
+  }
+
+  // 例: "S13-0753E33-0933 C00"
+  {
+    int startTime = sunriseTime + gTSB.amStartSRATime;
+    int endTime = startTime + gTSB.amEndTemperatureTime;
+    sprintf(lcdLines[3], "%c%01d%01d-%02d%02d%c%01d%01d-%02d%02d %c%02d",
+        (gMode == SET_MODE && gSetModeKind == SET_AM_START_SRATIME) ? 's' : 'S',
+        gTSB.amStartSRATime / 60,
+        (gTSB.amStartSRATime % 60) / 10,
+        startTime / 60,
+        startTime % 60,
+        (gMode == SET_MODE && gSetModeKind == SET_AM_END_TEMPERATURE_TIME) ? 'e' : 'E',
+        gTSB.amEndTemperatureTime / 60,
+        (gTSB.amEndTemperatureTime % 60) / 10,
+        endTime / 60,
+        endTime % 60,
+        (gMode == SET_MODE && gSetModeKind == SET_ANGLE_CORRECTION) ? 'c' : 'C',
+        gTSB.angleCorrection
       );
   }
 }
