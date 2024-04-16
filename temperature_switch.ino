@@ -500,9 +500,12 @@ void processSetMode(int tempDown, int tempUp)
       gTSB.amStartTemperature = decValue(gTSB.amStartTemperature, MIN_AM_START_TEMPERATURE);
     } else if (gSetModeKind == SET_AM_END_TEMPERATURE) {
       gTSB.amEndTemperature = decValue(gTSB.amEndTemperature, MIN_AM_END_TEMPERATURE);
-      if (gTSB.amEndTemperature <= gTSB.amStartTemperature) {
-        gTSB.amEndTemperature = gTSB.amStartTemperature;
+
+      // 午前の最終温度設定が午前の初期温度設定より小さくなった場合、午前の初期温度設定を減らす
+      if (gTSB.amEndTemperature < gTSB.amStartTemperature) {
+        gTSB.amStartTemperature = decValue(gTSB.amStartTemperature, MIN_AM_START_TEMPERATURE);
       }
+
     } else if (gSetModeKind == SET_ANGLE_CORRECTION) {
       gTSB.angleCorrection = decValue(gTSB.angleCorrection, MIN_ANGLE_CORRECTION);
     } else if (gSetModeKind == SET_PLUS_PM_TEMPERATURE_TIME) {
@@ -520,10 +523,14 @@ void processSetMode(int tempDown, int tempUp)
     } else if (gSetModeKind == SET_AM_END_TEMPERATURE_TIME) {
       gTSB.amEndTemperatureTime = incValue(gTSB.amEndTemperatureTime, MAX_AM_END_TEMPERATURE_TIME, 10);
     } else if (gSetModeKind == SET_AM_START_TEMPERATURE) {
+
       gTSB.amStartTemperature = incValue(gTSB.amStartTemperature, MAX_AM_START_TEMPERATURE);
-      if (gTSB.amEndTemperature <= gTSB.amStartTemperature) {
-        gTSB.amStartTemperature = gTSB.amEndTemperature;
+
+      if (gTSB.amEndTemperature < gTSB.amStartTemperature) {
+        // 午前の初期温度設定が午前の最終温度設定より大きくなった場合、午前の最終温度設定を増やす
+        gTSB.amEndTemperature = incValue(gTSB.amEndTemperature, MAX_AM_END_TEMPERATURE);
       }
+
     } else if (gSetModeKind == SET_AM_END_TEMPERATURE) {
       gTSB.amEndTemperature = incValue(gTSB.amEndTemperature, MAX_AM_END_TEMPERATURE);
     } else if (gSetModeKind == SET_ANGLE_CORRECTION) {
