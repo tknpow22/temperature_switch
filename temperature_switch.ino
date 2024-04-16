@@ -176,7 +176,7 @@
 //
 #define TSB_TYPE_BEGIN  'T'
 #define TSB_TYPE_END  'S'
-#define TSB_TYPE_VERSION  2
+#define TSB_TYPE_VERSION  3
 
 struct TemperatureSwitchBag {
   char typeBegin;
@@ -190,6 +190,10 @@ struct TemperatureSwitchBag {
   int pmPlusTempreture; // 午後温度での追加温度
   int pmPlusTempreture2SSBTime;  // 午後温度2を開始する日の入り前の時間(分)
   int pmPlusTempreture2; // 午後温度2での追加温度
+  // 現在の設定を覚える
+  bool isManualMode; // 手動時か否か
+  int manualTemperature;  // 手動時の温度設定
+  //
   char typeEnd;
 };
 
@@ -726,7 +730,15 @@ void loadTemperatureSwitchBag()
     gTSB.pmPlusTempreture2SSBTime = (1 * 60);
     gTSB.pmPlusTempreture2 = MIN_PM_PLUS_TEMPERATURE2;
     //
+    gTSB.isManualMode = (gMode == MANUAL_MODE);
+    gTSB.manualTemperature = gTemperature;
+    //
     gTSB.typeEnd = TSB_TYPE_END;
+  } else {
+    if (gTSB.isManualMode) {
+      gMode = MANUAL_MODE;
+      gTemperature = gTSB.manualTemperature;
+    }
   }
 }
 
@@ -736,6 +748,11 @@ void loadTemperatureSwitchBag()
 
 void saveTemperatureSwitchBag()
 {
+  gTSB.isManualMode = (gMode == MANUAL_MODE);
+  if (gTSB.isManualMode) {
+    gTSB.manualTemperature = gTemperature;
+  }
+
   byte* pTsb = (byte*) &gTSB;
   for (int i = 0; i < sizeof(gTSB); ++i) {
     i2cEepromWriteByte(EEPROM_I2C_ADDRESS, i, pTsb[i]);
@@ -846,6 +863,7 @@ void loop()
   } else if (autoMode == BUTTON_ON) {
     if (gMode == MANUAL_MODE) {
       gMode = AUTO_MODE;
+      saveTemperatureSwitchBag();
     }  
   } else if (tempDown == BUTTON_ON || tempUp == BUTTON_ON) {
     if (gMode == AUTO_MODE) {
@@ -896,6 +914,7 @@ void loop()
   } else if (gMode == MANUAL_MODE) {
     // 手動
     processManualMode(tempDown, tempUp);
+    saveTemperatureSwitchBag();
 
   } else if (gMode == SET_MODE) {
     // 設定
