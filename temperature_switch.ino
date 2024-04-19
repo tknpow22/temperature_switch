@@ -23,7 +23,9 @@
 #define LCD_COLS 20
 #define LCD_ROWS 4
 
-#define LCD_BUFFER_SIZE (LCD_COLS + 10)
+#define LCD_VIR_ROWS  5 // バッファ上の表示行
+
+#define LCD_COLS_BUFFER_SIZE (LCD_COLS + 10)
 
 //
 // サーボモーター
@@ -217,9 +219,6 @@ const double PULSE_PER_DEGREE = (double)(MAX_SERVO_PULSE - MIN_SERVO_PULSE) / (d
 
 // 設定データ
 TemperatureSwitchBag gTSB;
-
-// LCD 表示情報
-char gLcdLines[LCD_ROWS][LCD_BUFFER_SIZE];
 
 // モード
 int gMode = AUTO_MODE;
@@ -605,7 +604,7 @@ void processSetTimeMode(int tempDown, int tempUp)
 // 表示のための文字列の処理
 //------------------------------------------------------
 
-void processDisplayStrings(char lcdLines[LCD_ROWS][LCD_BUFFER_SIZE], const tmElements_t& tm, int sunriseTime, int sunsetTime)
+void processDisplayStrings(char lcdLines[LCD_VIR_ROWS][LCD_COLS_BUFFER_SIZE], const tmElements_t& tm, int sunriseTime, int sunsetTime)
 {
   // 例: "2023/11/13 15:15 A29"
   sprintf(lcdLines[0], "%04d/%02d/%02d %02d:%02d %c%02d",
@@ -649,11 +648,11 @@ void processDisplayStrings(char lcdLines[LCD_ROWS][LCD_BUFFER_SIZE], const tmEle
       );
   }
 
-  // 例: "S13-0753E33-0933 C00"
+  // 例: "S13-0753 E33-0933   "
   {
     int startTime = sunriseTime + gTSB.amStartSRATime;
     int endTime = startTime + gTSB.amEndTemperatureTime;
-    sprintf(lcdLines[3], "%c%01d%01d-%02d%02d%c%01d%01d-%02d%02d %c%02d",
+    sprintf(lcdLines[3], "%c%01d%01d-%02d%02d %c%01d%01d-%02d%02d   ",
         (gMode == SET_MODE && gSetModeKind == SET_AM_START_SRATIME) ? 's' : 'S',
         gTSB.amStartSRATime / 60,
         (gTSB.amStartSRATime % 60) / 10,
@@ -663,18 +662,25 @@ void processDisplayStrings(char lcdLines[LCD_ROWS][LCD_BUFFER_SIZE], const tmEle
         gTSB.amEndTemperatureTime / 60,
         (gTSB.amEndTemperatureTime % 60) / 10,
         endTime / 60,
-        endTime % 60,
+        endTime % 60
+      );
+  }
+
+  // 例: "C00                 "
+  {
+    sprintf(lcdLines[4], "%c%02d                 ",
         (gMode == SET_MODE && gSetModeKind == SET_ANGLE_CORRECTION) ? 'c' : 'C',
         gTSB.angleCorrection
       );
   }
+
 }
 
 //------------------------------------------------------
 // 時刻設定モードの表示のための文字列の処理
 //------------------------------------------------------
 
-void processSetTimeModeDisplayStrings(char lcdLines[LCD_ROWS][LCD_BUFFER_SIZE])
+void processSetTimeModeDisplayStrings(char lcdLines[LCD_VIR_ROWS][LCD_COLS_BUFFER_SIZE])
 {
   // 例: "">2023>11>13>18>18>18"
   sprintf(lcdLines[0], "%c%04d%c%02d%c%02d%c%02d%c%02d%c%02d",
@@ -764,14 +770,17 @@ void saveTemperatureSwitchBag()
 // LCD への表示
 //------------------------------------------------------
 
-void displayLCD(char lcdLines[LCD_ROWS][LCD_BUFFER_SIZE])
+void displayLCD(char lcdLines[LCD_VIR_ROWS][LCD_COLS_BUFFER_SIZE])
 {
+  int row = 0;
+  if (SET_ANGLE_CORRECTION <= gSetModeKind) {
+    row = 1;
+  }
+
   for (int i = 0; i < LCD_ROWS; ++i) {
-    if (strcmp(gLcdLines[i], lcdLines[i]) != 0) {
-      gLcd.setCursor(0, i);
-      gLcd.print(lcdLines[i]);
-      strcpy(gLcdLines[i], lcdLines[i]);
-    }
+    gLcd.setCursor(0, i);
+    gLcd.print(lcdLines[row]);
+    ++row;
   }
 }
 
@@ -803,11 +812,6 @@ void setup()
   gLcd.init(); 
   gLcd.backlight();
 
-  for (int i = 0; i < LCD_ROWS; ++i) {
-    memset(gLcdLines[i], ' ', LCD_BUFFER_SIZE);
-    gLcdLines[i][LCD_BUFFER_SIZE - 1] = '\0';
-  }
-
   //
   // サーボモータ
   //
@@ -831,7 +835,7 @@ void loop()
 {
   tmElements_t tm;
 
-  char lcdLines[LCD_ROWS][LCD_BUFFER_SIZE];
+  char lcdLines[LCD_VIR_ROWS][LCD_COLS_BUFFER_SIZE];
 
   gRtc.read(tm);
 
