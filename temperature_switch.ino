@@ -6,6 +6,8 @@
 #include <Servo.h>
 //#include <VarSpeedServo.h>  // NOTE: 回転速度が早いと感じたら利用すること
 #include <Dusk2Dawn.h>
+#include "temperature_switch.h"
+#include "MyServo.h"
 
 ////////////////////////////////////////////////////////
 // 定義
@@ -33,11 +35,6 @@
 
 // 制御ピン
 #define SERVO_PIN  10
-
-// サーボモーターのパルス範囲
-// NOTE: FS5103B のデータシートだと 600 - 2400 なのだが、少し行き過ぎるため上を少なめにした
-#define MIN_SERVO_PULSE 600
-#define MAX_SERVO_PULSE 2275
 
 //
 // EEPROM - 設定保存用
@@ -81,14 +78,6 @@
 //
 // 温度設定
 //
-
-// 温度設定の最小・最大
-#define MIN_TEMPERATURE 11
-#define MAX_TEMPERATURE 34
-
-// 温度設定に対応する角度の最小・最大
-//#define MIN_TEMPERATURE_ANGLE 0
-#define MAX_TEMPERATURE_ANGLE 180
 
 // 角度補正の最小・最大
 #define MIN_ANGLE_CORRECTION  -9
@@ -209,13 +198,8 @@ DS3232RTC gRtc;
 // 1602 LCD
 LiquidCrystal_I2C gLcd(LCD_I2C_ADDRESS/*I2Cスーレブアドレス*/, LCD_COLS/*COLS*/, LCD_ROWS/*ROWS*/);
 
-// FS5103B サーボモータ
-//VarSpeedServo gServo;   // NOTE: 回転速度が早いと感じたら利用すること
-Servo gServo;
-
-// パルス値の設定用定数
-const double PULSE_PER_TEMP = (double)(MAX_SERVO_PULSE - MIN_SERVO_PULSE) / (double)(MAX_TEMPERATURE - MIN_TEMPERATURE);
-const double PULSE_PER_DEGREE = (double)(MAX_SERVO_PULSE - MIN_SERVO_PULSE) / (double)MAX_TEMPERATURE_ANGLE;
+// サーボモータ
+MyServo gServo;
 
 // 設定データ
 TemperatureSwitchBag gTSB;
@@ -228,7 +212,6 @@ Dusk2Dawn gDusk2Dawn(Latitude, Longitude, 9/*timezone*/);
 
 // 現在の温度設定
 int gTemperature = MAX_TEMPERATURE;
-int gPrevTemperature = 0; // 直前の設定を保持する
 
 // Dusk2Dawn を何度も呼び出さないために、日付、日の出・日の入り時刻をキャッシュする
 unsigned long gPrevSunriseYMD = 0;
@@ -338,30 +321,6 @@ int decValue(int orgVal, int minValue, int subVal = 1)
     result = minValue;
   }
   return result;
-}
-
-//------------------------------------------------------
-// サーボ設定
-//------------------------------------------------------
-
-void servoWrite(int temperature) {
-  if (gPrevTemperature != temperature) {
-    double pulse = MIN_SERVO_PULSE + (PULSE_PER_TEMP * (temperature - MIN_TEMPERATURE));
-
-    // 補正を行う
-    pulse += PULSE_PER_DEGREE * gTSB.angleCorrection;
-
-    int nPulse = round(pulse);
-
-    nPulse = min(nPulse, MAX_SERVO_PULSE);
-    nPulse = max(nPulse, MIN_SERVO_PULSE);
-
-    //Serial.println(nPulse);
-    gServo.writeMicroseconds(nPulse);
-    delay(10);
-
-    gPrevTemperature = temperature;
-  }
 }
 
 //------------------------------------------------------
@@ -815,7 +774,7 @@ void setup()
   //
   // サーボモータ
   //
-  gServo.attach(SERVO_PIN, MIN_SERVO_PULSE, MAX_SERVO_PULSE);
+  gServo.attach(SERVO_PIN);
 
   //
   // タクトスイッチ
@@ -903,7 +862,7 @@ void loop()
       }
 
       gMode = AUTO_MODE;
-      gPrevTemperature = 0;  // リセットしてサーボモーターを動かす
+      gServo.reset(); // 内部変数をリセットしてサーボモーターを動かす
     }
   }
 
@@ -940,7 +899,7 @@ void loop()
   displayLCD(lcdLines);
 
   // サーボへ設定
-  servoWrite(gTemperature);
+  gServo.setTemperature(gTemperature, gTSB.angleCorrection);
 
   delay(200);
 
