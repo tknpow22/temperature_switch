@@ -773,7 +773,7 @@ void saveTemperatureSwitchBag()
 void displayLCD(char lcdLines[LCD_VIR_ROWS][LCD_COLS_BUFFER_SIZE])
 {
   int row = 0;
-  if (SET_ANGLE_CORRECTION <= gSetModeKind) {
+  if (gMode == SET_MODE && SET_ANGLE_CORRECTION <= gSetModeKind) {
     row = 1;
   }
 
