@@ -24,7 +24,6 @@
 #define LCD_I2C_ADDRESS 0x27
 #define LCD_COLS 20
 #define LCD_ROWS 4
-
 #define LCD_VIR_ROWS  5 // バッファ上の表示行
 
 #define LCD_COLS_BUFFER_SIZE (LCD_COLS + 10)
@@ -898,7 +897,7 @@ void loop()
   // LCD への表示
   displayLCD(lcdLines);
 
-  // サーボへ設定
+  // サーボへ温度を設定する
   gServo.setTemperature(gTemperature, gTSB.angleCorrection);
 
   delay(200);
