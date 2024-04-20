@@ -18,10 +18,10 @@ uint8_t MyServo::attach(int pin)
 void MyServo::setTemperature(int temperature, int angleCorrection)
 {
   if (this->prevTemperature != temperature) {
-    double pulse = MIN_SERVO_PULSE + (PULSE_PER_TEMP * (temperature - MIN_TEMPERATURE));
+    double pulse = MIN_SERVO_PULSE + (this->PULSE_PER_TEMP * (temperature - MIN_TEMPERATURE));
 
     // 補正を行う
-    pulse += PULSE_PER_DEGREE * angleCorrection;
+    pulse += this->PULSE_PER_DEGREE * angleCorrection;
 
     int nPulse = round(pulse);
 
