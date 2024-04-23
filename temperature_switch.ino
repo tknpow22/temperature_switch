@@ -6,6 +6,7 @@
 #include "MyServo.h"
 #include "MyDisplay.h"
 #include "Dusk2DawnWrap.h"
+#include "VariablesStorage.h"
 
 ////////////////////////////////////////////////////////
 // 定義
@@ -22,11 +23,6 @@
 
 // 制御ピン
 #define SERVO_PIN  10
-
-//
-// EEPROM - 設定保存用
-//
-#define EEPROM_I2C_ADDRESS  0x50
 
 //
 // タクトスイッチ
@@ -54,54 +50,6 @@
 #define BUTTON_ON LOW
 #define BUTTON_OFF  HIGH
 
-//
-// 温度設定
-//
-
-// 角度補正の最小・最大
-#define MIN_ANGLE_CORRECTION  -9
-#define MAX_ANGLE_CORRECTION  9
-
-//
-// 日の出・日の入り時刻取得
-//
-
-// 日の出から処理開始までの時間(分)の最小・最大
-#define MIN_AM_START_SRATIME  0
-#define MAX_AM_START_SRATIME  (3 * 60)
-
-//
-// 温度指定
-//
-
-// 午前の初期温度の最小・最大
-#define MIN_AM_START_TEMPERATURE 14
-#define MAX_AM_START_TEMPERATURE 28
-
-// 午前の最終温度の最小・最大
-#define MIN_AM_END_TEMPERATURE 16
-#define MAX_AM_END_TEMPERATURE MAX_TEMPERATURE
-
-// 処理開始から午前の最終温度に達するまでの時間(分)の最小・最大
-#define MIN_AM_END_TEMPERATURE_TIME  (0)
-#define MAX_AM_END_TEMPERATURE_TIME  (6 * 60)
-
-// 午後温度で追加する温度の最小・最大
-#define MIN_PM_PLUS_TEMPERATURE  0
-#define MAX_PM_PLUS_TEMPERATURE  5
-
-// 午後温度2で追加する温度の最小・最大
-#define MIN_PM_PLUS_TEMPERATURE2  0
-#define MAX_PM_PLUS_TEMPERATURE2  5
-
-// 午後温度の開始時刻(分)の最小・最大
-#define MIN_PM_PLUS_TEMPERATURE_TIME  (10 * 60)
-#define MAX_PM_PLUS_TEMPERATURE_TIME  (19 * 60)
-
-// 午後温度2を開始する日の入り前の時間(分)の最小・最大
-#define MIN_PM_PLUS_TEMPERATURE2_SSBTIME  (0)
-#define MAX_PM_PLUS_TEMPERATURE2_SSBTIME  (5 * 60)
-
 ////////////////////////////////////////////////////////
 // 変数
 ////////////////////////////////////////////////////////
@@ -124,39 +72,11 @@ MyServo gServo;
 // 日の出・日の入り時刻取得
 Dusk2DawnWrap gDusk2DawnWrap;
 
+// 設定の保存
+VariablesStorage gStorage(&gTSB, &gTSV);
+
 // 時刻設定モード移行カウンタ
 int gSetTimeModeTransCount = 0;
-
-//------------------------------------------------------
-// EEPROM への書き込み - from https://playground.arduino.cc/Code/I2CEEPROM/
-//------------------------------------------------------
-
-void i2cEepromWriteByte(int deviceaddress, unsigned int eeaddress, byte data)
-{
-  Wire.beginTransmission(deviceaddress);
-  Wire.write((int)(eeaddress >> 8)); // MSB
-  Wire.write((int)(eeaddress & 0xFF)); // LSB
-  Wire.write(data);
-  Wire.endTransmission();
-}
-
-//------------------------------------------------------
-// EEPROM からの読み込み - from https://playground.arduino.cc/Code/I2CEEPROM/
-//------------------------------------------------------
-
-byte i2cEepromReadByte(int deviceaddress, unsigned int eeaddress)
-{
-  byte rdata = 0xFF;
-  Wire.beginTransmission(deviceaddress);
-  Wire.write((int)(eeaddress >> 8)); // MSB
-  Wire.write((int)(eeaddress & 0xFF)); // LSB
-  Wire.endTransmission();
-  Wire.requestFrom(deviceaddress, 1);
-  if (Wire.available()) {
-    rdata = Wire.read();
-  }
-  return rdata;
-}
 
 //------------------------------------------------------
 // 指定月の日数を返す
@@ -417,61 +337,6 @@ void processSetTimeMode(int tempDown, int tempUp)
 }
 
 //------------------------------------------------------
-// 設定読込
-//------------------------------------------------------
-
-void loadTemperatureSwitchBag()
-{
-  byte* pTsb = (byte*) &gTSB;
-  for (int i = 0; i < sizeof(gTSB); ++i) {
-    pTsb[i] = i2cEepromReadByte(EEPROM_I2C_ADDRESS, i);
-  }
-
-  if (gTSB.typeBegin != TSB_TYPE_BEGIN || gTSB.typeEnd != TSB_TYPE_END || gTSB.typeVersion != TSB_TYPE_VERSION) {
-    gTSB.typeBegin = TSB_TYPE_BEGIN;
-    gTSB.typeVersion = TSB_TYPE_VERSION;
-    //
-    gTSB.amStartSRATime = (2 * 60);
-    gTSB.amEndTemperatureTime = (2 * 60);
-    gTSB.amStartTemperature = 20;
-    gTSB.amEndTemperature = 28;
-    gTSB.angleCorrection = 0;
-    gTSB.pmPlusTempretureTime = (12 * 60);
-    gTSB.pmPlusTempreture = MIN_PM_PLUS_TEMPERATURE;
-    gTSB.pmPlusTempreture2SSBTime = (1 * 60);
-    gTSB.pmPlusTempreture2 = MIN_PM_PLUS_TEMPERATURE2;
-    //
-    gTSB.isManualMode = (gTSV.mode == MANUAL_MODE);
-    gTSB.manualTemperature = gTSV.temperature;
-    //
-    gTSB.typeEnd = TSB_TYPE_END;
-  } else {
-    if (gTSB.isManualMode) {
-      gTSV.mode = MANUAL_MODE;
-      gTSV.temperature = gTSB.manualTemperature;
-    }
-  }
-}
-
-//------------------------------------------------------
-// 設定書き込み
-//------------------------------------------------------
-
-void saveTemperatureSwitchBag()
-{
-  gTSB.isManualMode = (gTSV.mode == MANUAL_MODE);
-  if (gTSB.isManualMode) {
-    gTSB.manualTemperature = gTSV.temperature;
-  }
-
-  byte* pTsb = (byte*) &gTSB;
-  for (int i = 0; i < sizeof(gTSB); ++i) {
-    i2cEepromWriteByte(EEPROM_I2C_ADDRESS, i, pTsb[i]);
-    delay(5);
-  }
-}
-
-//------------------------------------------------------
 // 初期化
 //------------------------------------------------------
 
@@ -486,7 +351,7 @@ void setup()
   //
   // 設定読込
   //
-  loadTemperatureSwitchBag();
+  gStorage.load();
 
   //
   // リアルタイムクロック
@@ -552,7 +417,7 @@ void loop()
   } else if (autoMode == BUTTON_ON) {
     if (gTSV.mode == MANUAL_MODE) {
       gTSV.mode = AUTO_MODE;
-      saveTemperatureSwitchBag();
+      gStorage.save();
     }  
   } else if (tempDown == BUTTON_ON || tempUp == BUTTON_ON) {
     if (gTSV.mode == AUTO_MODE) {
@@ -578,7 +443,7 @@ void loop()
     if (gTSV.mode == SET_MODE || gTSV.mode == SET_TIME_MODE) {
       if (gTSV.mode == SET_MODE) {
         gTSV.setModeKind = SET_UNDEFINED;
-        saveTemperatureSwitchBag();
+        gStorage.save();
       } else if (gTSV.mode == SET_TIME_MODE) {
         gTSV.setTimeModeKind = SET_TIME_UNDEFINED;
         if (gTSV.setTimeOk) {
@@ -603,7 +468,7 @@ void loop()
   } else if (gTSV.mode == MANUAL_MODE) {
     // 手動
     processManualMode(tempDown, tempUp);
-    saveTemperatureSwitchBag();
+    gStorage.save();
 
   } else if (gTSV.mode == SET_MODE) {
     // 設定

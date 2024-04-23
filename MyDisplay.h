@@ -22,16 +22,15 @@
 // ディスプレイ
 ////////////////////////////////////////////////////////
 // NOTE: メイン側の処理と区別するためにクラス化したが、処理方法はグローバル変数を使っていた時と変わりない。
-//       virtual 関数を使って、、、などと思ったがうまくまとめられそうになく、また、メモリや処理を圧迫しそうでやめた。
 
 class MyDisplay {
 public:
   // コンストラクタ
-  MyDisplay(TemperatureSwitchBag* pTSB, TSVariables* pTSV) :
+  MyDisplay(TemperatureSwitchBag* plTSB, TSVariables* plTSV) :
     lcd(DISPLAY_I2C_ADDRESS/*I2Cスーレブアドレス*/, DISPLAY_COLS/*COLS*/, DISPLAY_ROWS/*ROWS*/)
   {
-    this->pTSB = pTSB;
-    this->pTSV = pTSV;
+    this->pTSB = plTSB;
+    this->pTSV = plTSV;
   }
 
 public:

@@ -15,6 +15,46 @@
 #define MIN_TEMPERATURE 11
 #define MAX_TEMPERATURE 34
 
+// 角度補正の最小・最大
+#define MIN_ANGLE_CORRECTION  -9
+#define MAX_ANGLE_CORRECTION  9
+
+//
+// 温度指定
+//
+
+// 日の出から処理開始までの時間(分)の最小・最大
+#define MIN_AM_START_SRATIME  0
+#define MAX_AM_START_SRATIME  (3 * 60)
+
+// 午前の初期温度の最小・最大
+#define MIN_AM_START_TEMPERATURE 14
+#define MAX_AM_START_TEMPERATURE 28
+
+// 午前の最終温度の最小・最大
+#define MIN_AM_END_TEMPERATURE 16
+#define MAX_AM_END_TEMPERATURE MAX_TEMPERATURE
+
+// 処理開始から午前の最終温度に達するまでの時間(分)の最小・最大
+#define MIN_AM_END_TEMPERATURE_TIME  (0)
+#define MAX_AM_END_TEMPERATURE_TIME  (6 * 60)
+
+// 午後温度で追加する温度の最小・最大
+#define MIN_PM_PLUS_TEMPERATURE  0
+#define MAX_PM_PLUS_TEMPERATURE  5
+
+// 午後温度2で追加する温度の最小・最大
+#define MIN_PM_PLUS_TEMPERATURE2  0
+#define MAX_PM_PLUS_TEMPERATURE2  5
+
+// 午後温度の開始時刻(分)の最小・最大
+#define MIN_PM_PLUS_TEMPERATURE_TIME  (10 * 60)
+#define MAX_PM_PLUS_TEMPERATURE_TIME  (19 * 60)
+
+// 午後温度2を開始する日の入り前の時間(分)の最小・最大
+#define MIN_PM_PLUS_TEMPERATURE2_SSBTIME  (0)
+#define MAX_PM_PLUS_TEMPERATURE2_SSBTIME  (5 * 60)
+
 //
 // モード
 //
