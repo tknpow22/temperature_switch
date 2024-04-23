@@ -1,7 +1,6 @@
 #include <avr/wdt.h>
 #include <Wire.h>
 #include <DS3232RTC.h>
-//#include <VarSpeedServo.h>  // NOTE: 回転速度が早いと感じたら利用すること
 #include "temperature_switch.h"
 #include "MyServo.h"
 #include "MyDisplay.h"
@@ -35,7 +34,7 @@ Dusk2DawnWrap gDusk2DawnWrap;
 // 設定の保存
 VariablesStorage gStorage(&gTSB, &gTSV);
 
-// モード毎の動作
+// モード毎の動作など
 TSTask gTSTask(&gTSB, &gTSV, &gRtc, &gServo, &gStorage);
 
 //------------------------------------------------------
