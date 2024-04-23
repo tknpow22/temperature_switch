@@ -3,6 +3,10 @@
 
 #include <TimeLib.h>
 
+// 稼働地点の緯度・経度
+#define Longitude 133.8416  // 経度
+#define Latitude  33.5087   // 緯度
+
 //
 // 温度設定
 //

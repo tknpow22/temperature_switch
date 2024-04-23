@@ -1,14 +1,11 @@
 #include <avr/wdt.h>
 #include <Wire.h>
 #include <DS3232RTC.h>
-#include <TimeLib.h>
-#include <LiquidCrystal_I2C.h>
-#include <Servo.h>
 //#include <VarSpeedServo.h>  // NOTE: 回転速度が早いと感じたら利用すること
-#include <Dusk2Dawn.h>
 #include "temperature_switch.h"
 #include "MyServo.h"
 #include "MyDisplay.h"
+#include "Dusk2DawnWrap.h"
 
 ////////////////////////////////////////////////////////
 // 定義
@@ -73,10 +70,6 @@
 #define MIN_AM_START_SRATIME  0
 #define MAX_AM_START_SRATIME  (3 * 60)
 
-// 稼働地点の緯度・経度
-#define Longitude 133.8416  // 経度
-#define Latitude  33.5087   // 緯度
-
 //
 // 温度指定
 //
@@ -129,14 +122,7 @@ MyDisplay gDisplay(&gTSB, &gTSV);
 MyServo gServo;
 
 // 日の出・日の入り時刻取得
-Dusk2Dawn gDusk2Dawn(Latitude, Longitude, 9/*timezone*/);
-
-// Dusk2Dawn を何度も呼び出さないために、日付、日の出・日の入り時刻をキャッシュする
-// TODO: クラス化
-unsigned long gPrevSunriseYMD = 0;
-int gSunriseTime = -1;
-unsigned long gPrevSunsetYMD = 0;
-int gSunsetTime = -1;
+Dusk2DawnWrap gDusk2DawnWrap;
 
 // 時刻設定モード移行カウンタ
 int gSetTimeModeTransCount = 0;
@@ -230,44 +216,6 @@ int decValue(int orgVal, int minValue, int subVal = 1)
     result = minValue;
   }
   return result;
-}
-
-//------------------------------------------------------
-// 日の出時刻(分)を得る
-//------------------------------------------------------
-
-int getSunriseTime(int year, int month, int day)
-{
-  unsigned long ymd = ((unsigned long)year * 10000) + ((unsigned long)month * 100) + (unsigned long)day;
-
-  if (gPrevSunriseYMD == ymd && 0 <= gSunriseTime) {
-    return gSunriseTime;
-  }
-
-  int sunriseTime = gDusk2Dawn.sunrise(year, month, day, false/*サマータイム*/);
-  gSunriseTime = sunriseTime;
-  gPrevSunriseYMD = ymd;
-
-  return sunriseTime;
-}
-
-//------------------------------------------------------
-// 日の入り時刻(分)を得る
-//------------------------------------------------------
-
-int getSunsetTime(int year, int month, int day)
-{
-  unsigned long ymd = ((unsigned long)year * 10000) + ((unsigned long)month * 100) + (unsigned long)day;
-
-  if (gPrevSunsetYMD == ymd && 0 <= gSunsetTime) {
-    return gSunsetTime;
-  }
-
-  int sunsetTime = gDusk2Dawn.sunset(year, month, day, false/*サマータイム*/);
-  gSunsetTime = sunsetTime;
-  gPrevSunsetYMD = ymd;
-
-  return sunsetTime;
 }
 
 //------------------------------------------------------
@@ -571,16 +519,19 @@ void setup()
 
 void loop()
 {
+  // 現在時刻を取得する
   gRtc.read(gTSV.tm);
 
+  // 日の出・日の入り時刻を取得する
+  gTSV.sunriseTime = gDusk2DawnWrap.getSunriseTime(gTSV.tm.Year + 1970, gTSV.tm.Month, gTSV.tm.Day);
+  gTSV.sunsetTime = gDusk2DawnWrap.getSunsetTime(gTSV.tm.Year + 1970, gTSV.tm.Month, gTSV.tm.Day);
+
+  // タクトスイッチの状態を得る
   int autoMode = digitalRead(AUTO_MODE_PIN);
   int tempDown = digitalRead(TEMP_DOWN_PIN);
   int tempUp = digitalRead(TEMP_UP_PIN);
   int setMode = digitalRead(SET_MODE_PIN);
   int finishSetMode = digitalRead(FINISH_SET_MODE_PIN);
-
-  gTSV.sunriseTime = getSunriseTime(gTSV.tm.Year + 1970, gTSV.tm.Month, gTSV.tm.Day);
-  gTSV.sunsetTime = getSunsetTime(gTSV.tm.Year + 1970, gTSV.tm.Month, gTSV.tm.Day);
 
   //
   // タクトスイッチが押されている場合の処理
