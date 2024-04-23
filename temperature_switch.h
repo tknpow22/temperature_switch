@@ -7,6 +7,11 @@
 #define Longitude 133.8416  // 経度
 #define Latitude  33.5087   // 緯度
 
+// ボタンの状態
+// プルアップ接続なので、押されると 0、離すと 1
+#define BUTTON_ON LOW
+#define BUTTON_OFF  HIGH
+
 //
 // 温度設定
 //
