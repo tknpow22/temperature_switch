@@ -105,6 +105,32 @@
 #define MAX_SET_TIME_MODE_KIND  SET_TIME_OK // 時刻設定種別の最大値
 
 //
+// ピン設定
+//
+
+// サーボモーター
+// 制御ピン
+#define SERVO_PIN  10
+
+// タクトスイッチ
+// 使用ピン 2,4,7,8,12
+
+// 自動モードピン - 長押しで年月日時刻設定へ遷移する
+#define AUTO_MODE_PIN 2
+
+// 温度設定ダウンピン
+#define TEMP_DOWN_PIN 4
+
+// 温度設定アップピン
+#define TEMP_UP_PIN 7
+
+// 設定モードピン
+#define SET_MODE_PIN  8
+
+// 設定モード終了ピン
+#define FINISH_SET_MODE_PIN 12
+
+//
 // 設定データ
 //
 

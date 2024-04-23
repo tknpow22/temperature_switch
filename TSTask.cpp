@@ -5,6 +5,68 @@
 ////////////////////////////////////////////////////////
 
 //------------------------------------------------------
+// タクトスイッチの処理
+//------------------------------------------------------
+
+void TSTask::processSwt()
+{
+  if (this->autoModeSwt == BUTTON_ON) {
+    ++this->setTimeModeTransCount;
+  } else if (this->autoModeSwt == BUTTON_OFF) {
+    this->setTimeModeTransCount = 0;
+  }
+
+  if (10 < this->setTimeModeTransCount) {
+    this->pTSV->mode = SET_TIME_MODE;
+    this->pTSV->setTimeModeKind = MIN_SET_TIME_MODE_KIND;
+    this->setTimeModeTransCount = 0;
+    this->pTSV->setTm = this->pTSV->tm;
+    this->pTSV->setTimeOk = false;
+  } else if (this->autoModeSwt == BUTTON_ON) {
+    if (this->pTSV->mode == MANUAL_MODE) {
+      this->pTSV->mode = AUTO_MODE;
+      this->pStorage->save();
+    }  
+  } else if (this->tempDownSwt == BUTTON_ON || this->tempUpSwt == BUTTON_ON) {
+    if (this->pTSV->mode == AUTO_MODE) {
+      this->pTSV->mode = MANUAL_MODE;
+    }
+  } else if (this->setModeSwt == BUTTON_ON) {
+    if (this->pTSV->mode != SET_TIME_MODE) {
+      this->pTSV->mode = SET_MODE;
+
+      ++this->pTSV->setModeKind;
+      if (this->pTSV->setModeKind < MIN_SET_MODE_KIND || MAX_SET_MODE_KIND < this->pTSV->setModeKind) {
+        this->pTSV->setModeKind = MIN_SET_MODE_KIND;
+      }
+
+    } else {
+
+      ++this->pTSV->setTimeModeKind;
+      if (this->pTSV->setTimeModeKind < MIN_SET_TIME_MODE_KIND || MAX_SET_TIME_MODE_KIND < this->pTSV->setTimeModeKind) {
+        this->pTSV->setTimeModeKind = MIN_SET_TIME_MODE_KIND;
+      }
+    }
+  } else if (this->finishSetModeSwt == BUTTON_ON) {
+    if (this->pTSV->mode == SET_MODE || this->pTSV->mode == SET_TIME_MODE) {
+      if (this->pTSV->mode == SET_MODE) {
+        this->pTSV->setModeKind = SET_UNDEFINED;
+        this->pStorage->save();
+      } else if (this->pTSV->mode == SET_TIME_MODE) {
+        this->pTSV->setTimeModeKind = SET_TIME_UNDEFINED;
+        if (this->pTSV->setTimeOk) {
+          this->pRtc->write(this->pTSV->setTm);
+          this->pRtc->read(this->pTSV->tm);
+        }
+      }
+
+      this->pTSV->mode = AUTO_MODE;
+      this->pServo->reset(); // 内部変数をリセットしてサーボモーターを動かす
+    }
+  }
+}
+
+//------------------------------------------------------
 // 自動モードの処理
 //------------------------------------------------------
 
@@ -78,25 +140,27 @@ void TSTask::autoMode()
 // 手動モードの処理
 //------------------------------------------------------
 
-void TSTask::manualMode(int tempDownSwt, int tempUpSwt)
+void TSTask::manualMode()
 {
-  if (tempDownSwt == BUTTON_ON) {
+  if (this->tempDownSwt == BUTTON_ON) {
     // 温度設定を下げる
     this->pTSV->temperature = this->decValue(this->pTSV->temperature, MIN_TEMPERATURE);
 
-  } else if (tempUpSwt == BUTTON_ON) {
+  } else if (this->tempUpSwt == BUTTON_ON) {
     // 温度設定を上げる
     this->pTSV->temperature = this->incValue(this->pTSV->temperature, MAX_TEMPERATURE);
   }
+
+  this->pStorage->save();
 }
 
 //------------------------------------------------------
 // 設定モードの処理
 //------------------------------------------------------
 
-void TSTask::setMode(int tempDownSwt, int tempUpSwt)
+void TSTask::setMode()
 {
-  if (tempDownSwt == BUTTON_ON) {
+  if (this->tempDownSwt == BUTTON_ON) {
     if (this->pTSV->setModeKind == SET_AM_START_SRATIME) {
       this->pTSB->amStartSRATime = this->decValue(this->pTSB->amStartSRATime, MIN_AM_START_SRATIME, 10);
     } else if (this->pTSV->setModeKind == SET_AM_END_TEMPERATURE_TIME) {
@@ -122,7 +186,7 @@ void TSTask::setMode(int tempDownSwt, int tempUpSwt)
     } else if (this->pTSV->setModeKind == SET_PLUS_END_TEMPERATURE2) {
       this->pTSB->pmPlusTempreture2 = this->decValue(this->pTSB->pmPlusTempreture2, MIN_PM_PLUS_TEMPERATURE2);
     }
-  } else if (tempUpSwt == BUTTON_ON) {
+  } else if (this->tempUpSwt == BUTTON_ON) {
     if (this->pTSV->setModeKind == SET_AM_START_SRATIME) {
       this->pTSB->amStartSRATime = this->incValue(this->pTSB->amStartSRATime, MAX_AM_START_SRATIME, 10);
     } else if (this->pTSV->setModeKind == SET_AM_END_TEMPERATURE_TIME) {
@@ -156,9 +220,9 @@ void TSTask::setMode(int tempDownSwt, int tempUpSwt)
 // 時刻設定モードの処理
 //------------------------------------------------------
 
-void TSTask::setTimeMode(int tempDownSwt, int tempUpSwt)
+void TSTask::setTimeMode()
 {
-  if (tempDownSwt == BUTTON_ON) {
+  if (this->tempDownSwt == BUTTON_ON) {
     if (this->pTSV->setTimeModeKind == SET_TIME_YEAR) {
       this->pTSV->setTm.Year = this->decValue(this->pTSV->setTm.Year, 2023 - 1970);
     } else if (this->pTSV->setTimeModeKind == SET_TIME_MONTH) {
@@ -178,7 +242,7 @@ void TSTask::setTimeMode(int tempDownSwt, int tempUpSwt)
     } else if (this->pTSV->setTimeModeKind == SET_TIME_OK) {
       this->pTSV->setTimeOk = !this->pTSV->setTimeOk;
     }
-  } else if (tempUpSwt == BUTTON_ON) {
+  } else if (this->tempUpSwt == BUTTON_ON) {
     if (this->pTSV->setTimeModeKind == SET_TIME_YEAR) {
       this->pTSV->setTm.Year = this->incValue(this->pTSV->setTm.Year, 2050 - 1970);
     } else if (this->pTSV->setTimeModeKind == SET_TIME_MONTH) {
