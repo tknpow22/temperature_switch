@@ -16,7 +16,7 @@
 #define DISPLAY_COLS 20
 #define DISPLAY_COLS_BUFFER_SIZE (DISPLAY_COLS + 5) // プログラミングのバグで壊しそうなので念のため余分にとってある
 #define DISPLAY_ROWS 4
-#define DISPLAY_VIR_ROWS  5 // バッファ上の表示行
+#define DISPLAY_VIR_ROWS  7 // バッファ上の表示行
 
 ////////////////////////////////////////////////////////
 // ディスプレイ

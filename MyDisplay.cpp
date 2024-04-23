@@ -25,8 +25,15 @@ void MyDisplay::print()
   this->createPrintable();
 
   int startVirRow = 0;
-  if (this->pTSV->mode == SET_MODE && SET_ANGLE_CORRECTION <= this->pTSV->setModeKind) {
-    startVirRow = 1;
+  if (this->pTSV->mode == SET_MODE) {
+
+    if (SET_LNG_IPART <= this->pTSV->setModeKind) {
+      startVirRow = 3;
+    } else if (SET_LAT_IPART <= this->pTSV->setModeKind) {
+      startVirRow = 2;
+    } else if (SET_ANGLE_CORRECTION <= this->pTSV->setModeKind) {
+      startVirRow = 1;
+    }
   }
 
   this->printDisplay(startVirRow);
@@ -118,6 +125,32 @@ void MyDisplay::createNormalPrintable()
         this->pTSB->angleCorrection
       );
   }
+
+  // 例: "LAT IXXXX.D YY YY   "
+  {
+    sprintf(this->displayLines[5], "LAT %c%4d.%c%c%02d%c%02d   ",
+        (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_LAT_IPART) ? 'i' : 'I',
+        this->pTSB->latlngBag.latitudeIPart,
+        (this->pTSV->mode == SET_MODE && (this->pTSV->setModeKind == SET_LAT_DPART1 || this->pTSV->setModeKind == SET_LAT_DPART2)) ? 'd' : 'D',
+        (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_LAT_DPART1) ? '>' : ' ',
+        this->pTSB->latlngBag.latitudeDPart1,
+        (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_LAT_DPART2) ? '>' : ' ',
+        this->pTSB->latlngBag.latitudeDPart2
+      );
+  }
+
+  // 例: "LNG IXXXX.D YY YY   "
+  {
+    sprintf(this->displayLines[6], "LNG %c%4d.%c%c%02d%c%02d   ",
+        (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_LNG_IPART) ? 'i' : 'I',
+        this->pTSB->latlngBag.longitudeIPart,
+        (this->pTSV->mode == SET_MODE && (this->pTSV->setModeKind == SET_LNG_DPART1 || this->pTSV->setModeKind == SET_LNG_DPART2)) ? 'd' : 'D',
+        (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_LNG_DPART1) ? '>' : ' ',
+        this->pTSB->latlngBag.longitudeDPart1,
+        (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_LNG_DPART2) ? '>' : ' ',
+        this->pTSB->latlngBag.longitudeDPart2
+      );
+  }
 }
 
 //------------------------------------------------------
@@ -126,7 +159,7 @@ void MyDisplay::createNormalPrintable()
 
 void MyDisplay::createSetTimeModePrintable()
 {
-  // 例: "">2023>11>13>18>18>18"
+  // 例: ">2023>11>13>18>18>18"
   sprintf(this->displayLines[0], "%c%04d%c%02d%c%02d%c%02d%c%02d%c%02d",
       (this->pTSV->setTimeModeKind == SET_TIME_YEAR) ? '>' : ' ',
       this->pTSV->setTm.Year + 1970,

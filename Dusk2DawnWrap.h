@@ -11,9 +11,13 @@
 class Dusk2DawnWrap {
 public:
   // コンストラクタ
-  Dusk2DawnWrap()
-    : dusk2Dawn(Latitude, Longitude, 9/*timezone*/)
-  {}
+  Dusk2DawnWrap() {}
+
+public:
+  // 初期化
+  void init(LatLngBag* platlngBag);
+  // リセット
+  void reset(LatLngBag* platlngBag);
 
 public:
   // 日の出時刻(分)を得る
@@ -30,7 +34,7 @@ private:
   unsigned long sunsetYMD = 0;
 
   // 日の出・日の入りを取得するためのクラスライブラリ
-  Dusk2Dawn dusk2Dawn;
+  Dusk2Dawn* pDusk2Dawn = NULL;
 };
 
 #endif

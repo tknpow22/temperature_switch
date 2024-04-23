@@ -51,6 +51,7 @@ void TSTask::processSwt()
     if (this->pTSV->mode == SET_MODE || this->pTSV->mode == SET_TIME_MODE) {
       if (this->pTSV->mode == SET_MODE) {
         this->pTSV->setModeKind = SET_UNDEFINED;
+        this->pDusk2DawnWrap->reset(&this->pTSB->latlngBag);        
         this->pStorage->save();
       } else if (this->pTSV->mode == SET_TIME_MODE) {
         this->pTSV->setTimeModeKind = SET_TIME_UNDEFINED;
@@ -185,7 +186,20 @@ void TSTask::setMode()
       this->pTSB->pmPlusTempreture2SSBTime = this->decValue(this->pTSB->pmPlusTempreture2SSBTime, MIN_PM_PLUS_TEMPERATURE2_SSBTIME, 10);
     } else if (this->pTSV->setModeKind == SET_PLUS_END_TEMPERATURE2) {
       this->pTSB->pmPlusTempreture2 = this->decValue(this->pTSB->pmPlusTempreture2, MIN_PM_PLUS_TEMPERATURE2);
+    } else if (this->pTSV->setModeKind == SET_LAT_IPART) {
+      this->pTSB->latlngBag.latitudeIPart = this->decValue(this->pTSB->latlngBag.latitudeIPart, MIN_LAT_IPART);
+    } else if (this->pTSV->setModeKind == SET_LAT_DPART1) {
+      this->pTSB->latlngBag.latitudeDPart1 = this->decValue(this->pTSB->latlngBag.latitudeDPart1, MIN_LAT_DPART);
+    } else if (this->pTSV->setModeKind == SET_LAT_DPART2) {
+      this->pTSB->latlngBag.latitudeDPart2 = this->decValue(this->pTSB->latlngBag.latitudeDPart2, MIN_LAT_DPART);
+    } else if (this->pTSV->setModeKind == SET_LNG_IPART) {
+      this->pTSB->latlngBag.longitudeIPart = this->decValue(this->pTSB->latlngBag.longitudeIPart, MIN_LNG_IPART);
+    } else if (this->pTSV->setModeKind == SET_LNG_DPART1) {
+      this->pTSB->latlngBag.longitudeDPart1 = this->decValue(this->pTSB->latlngBag.longitudeDPart1, MIN_LNG_DPART);
+    } else if (this->pTSV->setModeKind == SET_LNG_DPART2) {
+      this->pTSB->latlngBag.longitudeDPart2 = this->decValue(this->pTSB->latlngBag.longitudeDPart2, MIN_LNG_DPART);
     }
+
   } else if (this->tempUpSwt == BUTTON_ON) {
     if (this->pTSV->setModeKind == SET_AM_START_SRATIME) {
       this->pTSB->amStartSRATime = this->incValue(this->pTSB->amStartSRATime, MAX_AM_START_SRATIME, 10);
@@ -212,6 +226,18 @@ void TSTask::setMode()
       this->pTSB->pmPlusTempreture2SSBTime = this->incValue(this->pTSB->pmPlusTempreture2SSBTime, MAX_PM_PLUS_TEMPERATURE2_SSBTIME, 10);
     } else if (this->pTSV->setModeKind == SET_PLUS_END_TEMPERATURE2) {
       this->pTSB->pmPlusTempreture2 = this->incValue(this->pTSB->pmPlusTempreture2, MAX_PM_PLUS_TEMPERATURE2);
+    } else if (this->pTSV->setModeKind == SET_LAT_IPART) {
+      this->pTSB->latlngBag.latitudeIPart = this->incValue(this->pTSB->latlngBag.latitudeIPart, MAX_LAT_IPART);
+    } else if (this->pTSV->setModeKind == SET_LAT_DPART1) {
+      this->pTSB->latlngBag.latitudeDPart1 = this->incValue(this->pTSB->latlngBag.latitudeDPart1, MAX_LAT_DPART);
+    } else if (this->pTSV->setModeKind == SET_LAT_DPART2) {
+      this->pTSB->latlngBag.latitudeDPart2 = this->incValue(this->pTSB->latlngBag.latitudeDPart2, MAX_LAT_DPART);
+    } else if (this->pTSV->setModeKind == SET_LNG_IPART) {
+      this->pTSB->latlngBag.longitudeIPart = this->incValue(this->pTSB->latlngBag.longitudeIPart, MAX_LNG_IPART);
+    } else if (this->pTSV->setModeKind == SET_LNG_DPART1) {
+      this->pTSB->latlngBag.longitudeDPart1 = this->incValue(this->pTSB->latlngBag.longitudeDPart1, MAX_LNG_DPART);
+    } else if (this->pTSV->setModeKind == SET_LNG_DPART2) {
+      this->pTSB->latlngBag.longitudeDPart2 = this->incValue(this->pTSB->latlngBag.longitudeDPart2, MAX_LNG_DPART);
     }
   }
 }

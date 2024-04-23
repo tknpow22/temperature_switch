@@ -5,6 +5,7 @@
 #include <DS3232RTC.h>
 #include "temperature_switch.h"
 #include "MyServo.h"
+#include "Dusk2DawnWrap.h"
 #include "VariablesStorage.h"
 
 ////////////////////////////////////////////////////////
@@ -15,13 +16,14 @@
 class TSTask {
 public:
   // コンストラクタ
-  TSTask(TemperatureSwitchBag* plTSB, TSVariables* plTSV, DS3232RTC* plRtc, MyServo* plServo, VariablesStorage* plStorage)
+  TSTask(TemperatureSwitchBag* plTSB, TSVariables* plTSV, DS3232RTC* plRtc, MyServo* plServo, VariablesStorage* plStorage, Dusk2DawnWrap* plDusk2DawnWrap)
   {
     this->pTSB = plTSB;
     this->pTSV = plTSV;
     this->pRtc = plRtc;
     this->pServo = plServo;
     this->pStorage = plStorage;
+    this->pDusk2DawnWrap = plDusk2DawnWrap;
   }
 
 public:
@@ -62,9 +64,11 @@ private:
   // DS3231 リアルタイムクロック
   DS3232RTC* pRtc = NULL;
   // サーボモータ
-  MyServo* pServo;
+  MyServo* pServo = NULL;
   // 設定の保存
-  VariablesStorage* pStorage;
+  VariablesStorage* pStorage = NULL;
+  // 日の出・日の入り時刻取得
+  Dusk2DawnWrap* pDusk2DawnWrap = NULL;
   // 時刻設定モード移行カウンタ
   int setTimeModeTransCount = 0;
 };

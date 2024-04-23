@@ -35,7 +35,7 @@ Dusk2DawnWrap gDusk2DawnWrap;
 VariablesStorage gStorage(&gTSB, &gTSV);
 
 // モード毎の動作など
-TSTask gTSTask(&gTSB, &gTSV, &gRtc, &gServo, &gStorage);
+TSTask gTSTask(&gTSB, &gTSV, &gRtc, &gServo, &gStorage, &gDusk2DawnWrap);
 
 //------------------------------------------------------
 // 初期化
@@ -53,6 +53,9 @@ void setup()
   // 設定読込
   //
   gStorage.load();
+
+  // 日の出・日の入り時刻取得
+  gDusk2DawnWrap.init(&gTSB.latlngBag);
 
   //
   // リアルタイムクロック

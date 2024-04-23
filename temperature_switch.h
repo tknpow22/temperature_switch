@@ -3,9 +3,34 @@
 
 #include <TimeLib.h>
 
-// 稼働地点の緯度・経度
-#define Longitude 133.8416  // 経度
-#define Latitude  33.5087   // 緯度
+// 緯度・経度の最小・最大
+// NOTE: 整数部と小数部を別々に設定する関係からチェックが面倒なので、1つ大きい・小さい値を下限・上限とする。
+// 緯度の最小・最大(-90 - 90)
+// 整数部
+#define MIN_LAT_IPART  -89
+#define MAX_LAT_IPART  89
+// 小数部
+#define MIN_LAT_DPART  0
+#define MAX_LAT_DPART  99
+
+// 経度の最小・最大(-180 - 180)
+// 整数部
+#define MIN_LNG_IPART  -179
+#define MAX_LNG_IPART  179
+// 小数部
+#define MIN_LNG_DPART  0
+#define MAX_LNG_DPART  99
+
+// 稼働地点の緯度・経度(デフォルト)
+////#define DEFAULT_LATITUDE  33.5087   // 緯度
+////#define DEFAULT_LONGITUDE 133.8416  // 経度
+#define DEFAULT_LATITUDE_IPART  33
+#define DEFAULT_LATITUDE_DPART1 50
+#define DEFAULT_LATITUDE_DPART2 87
+
+#define DEFAULT_LONGITUDE_IPART   133
+#define DEFAULT_LONGITUDE_DPART1  84
+#define DEFAULT_LONGITUDE_DPART2  16
 
 // ボタンの状態
 // プルアップ接続なので、押されると 0、離すと 1
@@ -83,9 +108,15 @@
 #define SET_AM_START_SRATIME  6 // 日の出から処理開始までの時間(分)
 #define SET_AM_END_TEMPERATURE_TIME  7 // 処理開始から午前の最終温度に達するまでの時間(分)
 #define SET_ANGLE_CORRECTION  8 // 角度補正
+#define SET_LAT_IPART  9 // 緯度(整数部)
+#define SET_LAT_DPART1  10 // 緯度(少数部1)
+#define SET_LAT_DPART2  11 // 緯度(少数部2)
+#define SET_LNG_IPART  12 // 経度(整数部)
+#define SET_LNG_DPART1  13 // 経度(少数部1)
+#define SET_LNG_DPART2  14 // 経度(少数部2)
 
 #define MIN_SET_MODE_KIND SET_AM_START_TEMPERATURE  // 設定種別の最小値
-#define MAX_SET_MODE_KIND SET_ANGLE_CORRECTION  // 設定種別の最大値
+#define MAX_SET_MODE_KIND SET_LNG_DPART2  // 設定種別の最大値
 
 //
 // 時刻設定
@@ -136,11 +167,25 @@
 
 #define TSB_TYPE_BEGIN  'T'
 #define TSB_TYPE_END  'S'
-#define TSB_TYPE_VERSION  3
+#define TSB_TYPE_VERSION  5
+
+// 緯度・経度保存用
+struct LatLngBag {
+  // 小数表現 III.DDdd を格納する
+  // 緯度
+  int latitudeIPart;  // III
+  int latitudeDPart1; // DD
+  int latitudeDPart2; // dd
+  // 経度
+  int longitudeIPart;
+  int longitudeDPart1;
+  int longitudeDPart2;
+};
 
 struct TemperatureSwitchBag {
   char typeBegin;
   int typeVersion;
+  //
   int amStartSRATime; // 日の出から処理開始までの時間(分)  
   int amEndTemperatureTime;  // 処理開始から午前の最終温度に達するまでの時間(分)
   int amStartTemperature;  // 午前の初期温度
@@ -153,6 +198,8 @@ struct TemperatureSwitchBag {
   // 現在の設定を覚える
   bool isManualMode; // 手動時か否か
   int manualTemperature;  // 手動時の温度設定
+  // 緯度・経度
+  LatLngBag latlngBag;
   //
   char typeEnd;
 };

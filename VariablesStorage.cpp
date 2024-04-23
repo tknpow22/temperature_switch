@@ -51,6 +51,14 @@ void VariablesStorage::load()
     this->pTSB->isManualMode = (this->pTSV->mode == MANUAL_MODE);
     this->pTSB->manualTemperature = this->pTSV->temperature;
     //
+    this->pTSB->latlngBag.latitudeIPart = DEFAULT_LATITUDE_IPART;
+    this->pTSB->latlngBag.latitudeDPart1 = DEFAULT_LATITUDE_DPART1;
+    this->pTSB->latlngBag.latitudeDPart2 = DEFAULT_LATITUDE_DPART2;
+
+    this->pTSB->latlngBag.longitudeIPart = DEFAULT_LONGITUDE_IPART;
+    this->pTSB->latlngBag.longitudeDPart1 = DEFAULT_LONGITUDE_DPART1;
+    this->pTSB->latlngBag.longitudeDPart2 = DEFAULT_LONGITUDE_DPART2;
+    //
     this->pTSB->typeEnd = TSB_TYPE_END;
   } else {
     if (this->pTSB->isManualMode) {
