@@ -20,6 +20,7 @@
 
 class MyServo {
 public:
+  // コンストラクタ
   MyServo() {}
 
 public:
