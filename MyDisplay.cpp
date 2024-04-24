@@ -196,8 +196,11 @@ void MyDisplay::printDisplay(int startVirRow)
 {
   int row = startVirRow;
   for (int i = 0; i < DISPLAY_ROWS; ++i) {
-    this->lcd.setCursor(0, i);
-    this->lcd.print(this->displayLines[row]);
+    if (memcmp(this->displayLines[row], this->prevDisplayLines[i], DISPLAY_COLS) != 0) {
+      this->lcd.setCursor(0, i);
+      this->lcd.print(this->displayLines[row]);
+      strncpy(this->prevDisplayLines[i], this->displayLines[row], DISPLAY_COLS + 1);
+    }
     ++row;
   }
 }

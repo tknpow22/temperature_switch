@@ -31,6 +31,8 @@ public:
   {
     this->pTSB = plTSB;
     this->pTSV = plTSV;
+
+    memset(this->prevDisplayLines, 0x00, sizeof(this->prevDisplayLines));
   }
 
 public:
@@ -56,6 +58,8 @@ private:
   TSVariables* pTSV = NULL;
   // 表示文字列を格納する
   char displayLines[DISPLAY_VIR_ROWS][DISPLAY_COLS_BUFFER_SIZE];
+  // 直前の表示文字列を格納する
+  char prevDisplayLines[DISPLAY_ROWS][DISPLAY_COLS_BUFFER_SIZE];
   // 20 x 4 LCD を使用する
   LiquidCrystal_I2C lcd;
 };
