@@ -54,7 +54,9 @@ void setup()
   //
   gStorage.load();
 
+  //
   // 日の出・日の入り時刻取得
+  //
   gDusk2DawnWrap.init(&gTSB.latlngBag);
 
   //
