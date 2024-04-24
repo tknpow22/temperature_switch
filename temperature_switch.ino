@@ -136,7 +136,7 @@ void loop()
   // サーボへ温度を設定する
   gServo.setTemperature(gTSV.temperature, gTSB.angleCorrection);
 
-  delay(50);
+  delay(125);
 
   wdt_reset();
 }
