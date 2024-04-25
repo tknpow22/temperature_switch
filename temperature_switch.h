@@ -86,6 +86,18 @@
 #define MAX_PM_PLUS_TEMPERATURE2_SSBTIME  (5 * 60)
 
 //
+// リセットパラメータ
+//
+
+// リセットを行う時間間隔(時)の最小・最大
+#define MIN_RESET_INTERVAL_HOUR 1
+#define MAX_RESET_INTERVAL_HOUR 9
+
+// リセットする時間(分)の最小・最大
+#define MIN_RESET_MINUTES  1
+#define MAX_RESET_MINUTES  9
+
+//
 // モード
 //
 #define AUTO_MODE 0   // 自動
@@ -108,12 +120,15 @@
 #define SET_AM_START_SRATIME  6 // 日の出から処理開始までの時間(分)
 #define SET_AM_END_TEMPERATURE_TIME  7 // 処理開始から午前の最終温度に達するまでの時間(分)
 #define SET_ANGLE_CORRECTION  8 // 角度補正
-#define SET_LAT_IPART  9 // 緯度(整数部)
-#define SET_LAT_DPART1  10 // 緯度(少数部1)
-#define SET_LAT_DPART2  11 // 緯度(少数部2)
-#define SET_LNG_IPART  12 // 経度(整数部)
-#define SET_LNG_DPART1  13 // 経度(少数部1)
-#define SET_LNG_DPART2  14 // 経度(少数部2)
+#define SET_IS_RESET  9 // リセットを行うかどうか
+#define SET_RESET_INTERVAL_HOUR 10  // リセットを行う時間間隔(時)
+#define SET_RESET_MINUTES 11  // リセットする時間(分)
+#define SET_LAT_IPART  12 // 緯度(整数部)
+#define SET_LAT_DPART1  13 // 緯度(少数部1)
+#define SET_LAT_DPART2  14 // 緯度(少数部2)
+#define SET_LNG_IPART  15 // 経度(整数部)
+#define SET_LNG_DPART1  16 // 経度(少数部1)
+#define SET_LNG_DPART2  17 // 経度(少数部2)
 
 #define MIN_SET_MODE_KIND SET_AM_START_TEMPERATURE  // 設定種別の最小値
 #define MAX_SET_MODE_KIND SET_LNG_DPART2  // 設定種別の最大値
@@ -167,7 +182,7 @@
 
 #define TSB_TYPE_BEGIN  'T'
 #define TSB_TYPE_END  'S'
-#define TSB_TYPE_VERSION  5
+#define TSB_TYPE_VERSION  6
 
 // 緯度・経度保存用
 struct LatLngBag {
@@ -180,6 +195,13 @@ struct LatLngBag {
   int longitudeIPart;
   int longitudeDPart1;
   int longitudeDPart2;
+};
+
+// リセットパラメータ
+struct ResetParam {
+  bool isReset; // リセットを行うかどうか
+  int intervalHour; // リセットを行う時間間隔(時)
+  int resetMinutes; // リセットする時間(分)
 };
 
 struct TemperatureSwitchBag {
@@ -200,6 +222,8 @@ struct TemperatureSwitchBag {
   int manualTemperature;  // 手動時の温度設定
   // 緯度・経度
   LatLngBag latlngBag;
+  // リセットパラメータ
+  ResetParam resetParam;
   //
   char typeEnd;
 };

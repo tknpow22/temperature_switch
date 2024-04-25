@@ -65,7 +65,7 @@ void MyDisplay::createNormalPrintable()
       this->pTSV->tm.Day,
       this->pTSV->tm.Hour,
       this->pTSV->tm.Minute,
-      (this->pTSV->mode == AUTO_MODE) ? 'A' : (this->pTSV->mode == SET_MODE) ? 'X' : 'M',
+      (this->pTSV->mode == AUTO_MODE) ? ((this->pTSB->resetParam.isReset) ? '@' : 'A') : (this->pTSV->mode == SET_MODE) ? 'X' : 'M',
       this->pTSV->temperature
     );
 
@@ -118,11 +118,17 @@ void MyDisplay::createNormalPrintable()
       );
   }
 
-  // 例: "C00                 "
+  // 例: "C00 RY H1 M1        "
   {
-    sprintf(this->displayLines[4], "%c%02d                 ",
+    sprintf(this->displayLines[4], "%c%02d %c%c %c%1d %c%1d        ",
         (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_ANGLE_CORRECTION) ? 'c' : 'C',
-        this->pTSB->angleCorrection
+        this->pTSB->angleCorrection,
+        (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_IS_RESET) ? 'r' : 'R',
+        (this->pTSB->resetParam.isReset) ? 'Y' : 'N',
+        (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_RESET_INTERVAL_HOUR) ? 'h' : 'H',
+        this->pTSB->resetParam.intervalHour,
+        (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_RESET_MINUTES) ? 'm' : 'M',
+        this->pTSB->resetParam.resetMinutes
       );
   }
 

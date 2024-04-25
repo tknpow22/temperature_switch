@@ -198,6 +198,12 @@ void TSTask::setMode()
       this->pTSB->latlngBag.longitudeDPart1 = this->decValue(this->pTSB->latlngBag.longitudeDPart1, MIN_LNG_DPART);
     } else if (this->pTSV->setModeKind == SET_LNG_DPART2) {
       this->pTSB->latlngBag.longitudeDPart2 = this->decValue(this->pTSB->latlngBag.longitudeDPart2, MIN_LNG_DPART);
+    } else if (this->pTSV->setModeKind == SET_IS_RESET) {
+      this->pTSB->resetParam.isReset = !this->pTSB->resetParam.isReset;
+    } else if (this->pTSV->setModeKind == SET_RESET_INTERVAL_HOUR) {
+      this->pTSB->resetParam.intervalHour = this->decValue(this->pTSB->resetParam.intervalHour, MIN_RESET_INTERVAL_HOUR);
+    } else if (this->pTSV->setModeKind == SET_RESET_MINUTES) {
+      this->pTSB->resetParam.resetMinutes = this->decValue(this->pTSB->resetParam.resetMinutes, MIN_RESET_MINUTES);
     }
 
   } else if (this->tempUpSwt == BUTTON_ON) {
@@ -238,6 +244,12 @@ void TSTask::setMode()
       this->pTSB->latlngBag.longitudeDPart1 = this->incValue(this->pTSB->latlngBag.longitudeDPart1, MAX_LNG_DPART);
     } else if (this->pTSV->setModeKind == SET_LNG_DPART2) {
       this->pTSB->latlngBag.longitudeDPart2 = this->incValue(this->pTSB->latlngBag.longitudeDPart2, MAX_LNG_DPART);
+    } else if (this->pTSV->setModeKind == SET_IS_RESET) {
+      this->pTSB->resetParam.isReset = !this->pTSB->resetParam.isReset;
+    } else if (this->pTSV->setModeKind == SET_RESET_INTERVAL_HOUR) {
+      this->pTSB->resetParam.intervalHour = this->incValue(this->pTSB->resetParam.intervalHour, MAX_RESET_INTERVAL_HOUR);
+    } else if (this->pTSV->setModeKind == SET_RESET_MINUTES) {
+      this->pTSB->resetParam.resetMinutes = this->incValue(this->pTSB->resetParam.resetMinutes, MAX_RESET_MINUTES);
     }
   }
 }
