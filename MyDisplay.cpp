@@ -58,23 +58,23 @@ void MyDisplay::createPrintable()
 
 void MyDisplay::createNormalPrintable()
 {
-  char autoModeChr = 'A';
+  char modeChr = 'A';
   {
     if (this->pTSV->mode == AUTO_MODE) {
       if (this->pTSB->resetParam.isReset) {
         if (this->pTSV->isWhileReset) {
-          autoModeChr = 'R';
+          modeChr = 'R';
         } else {
-          autoModeChr = '@';
+          modeChr = '@';
         }
       } else {
-        autoModeChr = 'A';
+        modeChr = 'A';
       }
     } else {
       if (this->pTSV->mode == MANUAL_MODE) {
-        autoModeChr = 'M';
+        modeChr = 'M';
       } else {
-        autoModeChr = 'X';
+        modeChr = 'X';
       }
     }
   }
@@ -86,7 +86,7 @@ void MyDisplay::createNormalPrintable()
       this->pTSV->tm.Day,
       this->pTSV->tm.Hour,
       this->pTSV->tm.Minute,
-      autoModeChr,
+      modeChr,
       this->pTSV->temperature
     );
 
