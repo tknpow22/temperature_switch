@@ -41,6 +41,10 @@ public:
   void setTimeMode();
 
 private:
+  // リセットの処理
+  void resetTask();
+
+private:
   // 指定月の日数を返す
   int getMonthsDays(int year, int month);
   // 値を増やして返す

@@ -239,6 +239,7 @@ struct TSVariables {
   int setTimeModeKind = SET_TIME_UNDEFINED;  // 時刻設定種別
   int sunriseTime = -1;  // 日の出時刻
   int sunsetTime = -1;  // 日の入り時刻
+  bool isWhileReset = false;
   // 時刻設定用変数
   tmElements_t setTm;
   bool setTimeOk = false;

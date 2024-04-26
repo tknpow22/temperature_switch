@@ -305,6 +305,48 @@ void TSTask::setTimeMode()
 }
 
 //------------------------------------------------------
+// リセットの処理
+//------------------------------------------------------
+
+void TSTask::resetTask()
+{
+  this->pTSV->isWhileReset = false;
+
+  if (this->pTSV->sunriseTime < 0 || this->pTSV->sunsetTime < 0) {
+    // 日の出時刻および日の入り時刻を取得できていない
+    return;
+  }
+
+  // 現在時刻
+  int currentTime = this->pTSV->tm.Hour * 60 + this->pTSV->tm.Minute;
+
+  if (currentTime < this->pTSV->sunriseTime || this->pTSV->sunsetTime < currentTime ) {
+    // 現在時刻が日の出時刻前または日の入り時刻後
+    return;
+  }
+
+  // 処理開始時刻
+  int startTime = this->pTSV->sunriseTime/* + this->pTSB->amStartSRATime*/;
+  if (currentTime < startTime) {
+    // 現在時刻が処理開始時刻前
+    return;
+  }
+
+  int currentHour = this->pTSV->tm.Hour;
+  int startHour = startTime / 60;
+  int evalHour = currentHour - startHour; // 評価用時刻(時)
+
+  if (this->pTSB->resetParam.isReset
+    && 0 < evalHour
+    && (evalHour % this->pTSB->resetParam.intervalHour) == 0
+    && /*0 <= this->pTSV->tm.Minute &&*/ this->pTSV->tm.Minute < this->pTSB->resetParam.resetMinutes) {
+    // 処理開始時(分は切り捨て)を基準としてリセットを行う時間間隔(時)で、正時にリセットする時間(分)だけリセットする
+    this->pTSV->temperature = MAX_TEMPERATURE;
+    this->pTSV->isWhileReset = true;
+  }
+}
+
+//------------------------------------------------------
 // 指定月の日数を返す
 //------------------------------------------------------
 int TSTask::getMonthsDays(int year, int month)
@@ -363,4 +405,3 @@ int TSTask::decValue(int orgVal, int minValue, int subVal = 1)
   }
   return result;
 }
-

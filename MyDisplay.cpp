@@ -58,6 +58,27 @@ void MyDisplay::createPrintable()
 
 void MyDisplay::createNormalPrintable()
 {
+  char autoModeChr = 'A';
+  {
+    if (this->pTSV->mode == AUTO_MODE) {
+      if (this->pTSB->resetParam.isReset) {
+        if (this->pTSV->isWhileReset) {
+          autoModeChr = 'R';
+        } else {
+          autoModeChr = '@';
+        }
+      } else {
+        autoModeChr = 'A';
+      }
+    } else {
+      if (this->pTSV->mode == MANUAL_MODE) {
+        autoModeChr = 'M';
+      } else {
+        autoModeChr = 'X';
+      }
+    }
+  }
+
   // 例: "2023/11/13 15:15 A29"
   sprintf(this->displayLines[0], "%04d/%02d/%02d %02d:%02d %c%02d",
       this->pTSV->tm.Year + 1970,
@@ -65,7 +86,7 @@ void MyDisplay::createNormalPrintable()
       this->pTSV->tm.Day,
       this->pTSV->tm.Hour,
       this->pTSV->tm.Minute,
-      (this->pTSV->mode == AUTO_MODE) ? ((this->pTSB->resetParam.isReset) ? '@' : 'A') : (this->pTSV->mode == SET_MODE) ? 'X' : 'M',
+      autoModeChr,
       this->pTSV->temperature
     );
 
