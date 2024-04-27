@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 #include <DS3232RTC.h>
-#include "temperature_switch.h"
+#include "TemperatureSwitch.h"
 #include "MyServo.h"
 #include "Dusk2DawnWrap.h"
 #include "VariablesStorage.h"
@@ -33,16 +33,24 @@ public:
 public:
   // 自動モードの処理
   void autoMode();
+
+private:
+  // 午前の温度処理
+  void amTask(int currentTime);
+  // 午後の温度処理
+  void pmTask(int currentTime);
+  // 午後の温度処理2
+  void pmTask2(int currentTime);
+  // リセットの処理
+  void resetTask();
+
+public:
   // 手動モードの処理
   void manualMode();
   // 設定モードの処理
   void setMode();
   // 時刻設定モードの処理
   void setTimeMode();
-
-private:
-  // リセットの処理
-  void resetTask();
 
 private:
   // 指定月の日数を返す

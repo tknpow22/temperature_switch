@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "temperature_switch.h"
+#include "TemperatureSwitch.h"
 #include "MyServo.h"
 
 ////////////////////////////////////////////////////////

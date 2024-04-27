@@ -75,8 +75,28 @@ void TSTask::autoMode()
 {
   int currentTime = this->pTSV->tm.Hour * 60 + this->pTSV->tm.Minute;
 
-  // sunriseTime および sunsetTime には日の出時刻および日の入り時刻が、深夜 0 時からの時間(分)で入っている。
+  // pTSV->sunriseTime および pTSV->sunsetTime には日の出時刻および日の入り時刻が、深夜 0 時からの時間(分)で入っている。
   // NOTE: 取得に失敗している場合は共にマイナスの値が設定される。
+
+  // 午前の温度処理
+  this->amTask(currentTime);
+
+  // 午後の温度処理
+  this->pmTask(currentTime);
+
+  // 午後の温度処理2
+  this->pmTask2(currentTime);
+
+  // リセットの処理
+  this->resetTask();
+}
+
+//------------------------------------------------------
+// 午前の温度処理
+//------------------------------------------------------
+
+void TSTask::amTask(int currentTime)
+{
   if (0 <= this->pTSV->sunriseTime) {
 
     int startTime = this->pTSV->sunriseTime + this->pTSB->amStartSRATime;
@@ -112,7 +132,14 @@ void TSTask::autoMode()
       }
     }
   }
+}
 
+//------------------------------------------------------
+// 午後の温度処理
+//------------------------------------------------------
+
+void TSTask::pmTask(int currentTime)
+{
   if (0 <= this->pTSV->sunsetTime) {
     if ((currentTime < this->pTSV->sunriseTime || this->pTSB->pmPlusTempretureTime <= currentTime) && 0 < this->pTSB->pmPlusTempreture) {
       // 日の出前または午後温度の開始時刻(分)を過ぎた場合
@@ -123,7 +150,14 @@ void TSTask::autoMode()
       this->pTSV->temperature = plusTempreture;
     }
   }
+}
 
+//------------------------------------------------------
+// 午後の温度処理2
+//------------------------------------------------------
+
+void TSTask::pmTask2(int currentTime)
+{
   if (0 <= this->pTSV->sunsetTime) {
     int plusStartTime = this->pTSV->sunsetTime - this->pTSB->pmPlusTempreture2SSBTime;
     if ((currentTime < this->pTSV->sunriseTime || plusStartTime <= currentTime) && 0 < this->pTSB->pmPlusTempreture2) {
@@ -134,6 +168,48 @@ void TSTask::autoMode()
       }
       this->pTSV->temperature = plusTempreture;
     }
+  }
+}
+
+//------------------------------------------------------
+// リセットの処理
+//------------------------------------------------------
+
+void TSTask::resetTask()
+{
+  this->pTSV->isWhileReset = false;
+
+  if (this->pTSV->sunriseTime < 0 || this->pTSV->sunsetTime < 0) {
+    // 日の出時刻および日の入り時刻を取得できていない
+    return;
+  }
+
+  // 現在時刻
+  int currentTime = this->pTSV->tm.Hour * 60 + this->pTSV->tm.Minute;
+
+  if (currentTime < this->pTSV->sunriseTime || this->pTSV->sunsetTime < currentTime ) {
+    // 現在時刻が日の出時刻前または日の入り時刻後
+    return;
+  }
+
+  // 処理開始時刻
+  int startTime = this->pTSV->sunriseTime/* + this->pTSB->amStartSRATime*/;
+  if (currentTime < startTime) {
+    // 現在時刻が処理開始時刻前
+    return;
+  }
+
+  int currentHour = this->pTSV->tm.Hour;
+  int startHour = startTime / 60;
+  int evalHour = currentHour - startHour; // 評価用時刻(時)
+
+  if (this->pTSB->resetParam.isReset
+    && 0 < evalHour
+    && (evalHour % this->pTSB->resetParam.intervalHour) == 0
+    && /*0 <= this->pTSV->tm.Minute &&*/ this->pTSV->tm.Minute < this->pTSB->resetParam.resetMinutes) {
+    // 処理開始時(分は切り捨て)を基準としてリセットを行う時間間隔(時)で、正時にリセットする時間(分)だけリセットする
+    this->pTSV->temperature = MAX_TEMPERATURE;
+    this->pTSV->isWhileReset = true;
   }
 }
 
@@ -301,48 +377,6 @@ void TSTask::setTimeMode()
     } else if (this->pTSV->setTimeModeKind == SET_TIME_OK) {
       this->pTSV->setTimeOk = !this->pTSV->setTimeOk;
     }
-  }
-}
-
-//------------------------------------------------------
-// リセットの処理
-//------------------------------------------------------
-
-void TSTask::resetTask()
-{
-  this->pTSV->isWhileReset = false;
-
-  if (this->pTSV->sunriseTime < 0 || this->pTSV->sunsetTime < 0) {
-    // 日の出時刻および日の入り時刻を取得できていない
-    return;
-  }
-
-  // 現在時刻
-  int currentTime = this->pTSV->tm.Hour * 60 + this->pTSV->tm.Minute;
-
-  if (currentTime < this->pTSV->sunriseTime || this->pTSV->sunsetTime < currentTime ) {
-    // 現在時刻が日の出時刻前または日の入り時刻後
-    return;
-  }
-
-  // 処理開始時刻
-  int startTime = this->pTSV->sunriseTime/* + this->pTSB->amStartSRATime*/;
-  if (currentTime < startTime) {
-    // 現在時刻が処理開始時刻前
-    return;
-  }
-
-  int currentHour = this->pTSV->tm.Hour;
-  int startHour = startTime / 60;
-  int evalHour = currentHour - startHour; // 評価用時刻(時)
-
-  if (this->pTSB->resetParam.isReset
-    && 0 < evalHour
-    && (evalHour % this->pTSB->resetParam.intervalHour) == 0
-    && /*0 <= this->pTSV->tm.Minute &&*/ this->pTSV->tm.Minute < this->pTSB->resetParam.resetMinutes) {
-    // 処理開始時(分は切り捨て)を基準としてリセットを行う時間間隔(時)で、正時にリセットする時間(分)だけリセットする
-    this->pTSV->temperature = MAX_TEMPERATURE;
-    this->pTSV->isWhileReset = true;
   }
 }
 

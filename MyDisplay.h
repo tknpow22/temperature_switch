@@ -3,7 +3,7 @@
 
 #include <TimeLib.h>
 #include <LiquidCrystal_I2C.h>
-#include "temperature_switch.h"
+#include "TemperatureSwitch.h"
 
 //
 // ディスプレイの I2C アドレス

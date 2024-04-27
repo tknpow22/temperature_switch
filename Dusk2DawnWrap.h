@@ -2,7 +2,7 @@
 #define __DUSK_2_DAWN_WRAP_H__
 
 #include <Dusk2Dawn.h>
-#include "temperature_switch.h"
+#include "TemperatureSwitch.h"
 
 ////////////////////////////////////////////////////////
 // 日の出・日の入り取得

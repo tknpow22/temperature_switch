@@ -2,7 +2,7 @@
 #define __VARIABLES_STORAGE_H__
 
 #include <Arduino.h>
-#include "temperature_switch.h"
+#include "TemperatureSwitch.h"
 
 //
 // EEPROM の I2C アドレス

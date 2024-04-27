@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "temperature_switch.h"
+#include "TemperatureSwitch.h"
 #include "MyDisplay.h"
 
 ////////////////////////////////////////////////////////
@@ -70,12 +70,10 @@ void MyDisplay::createNormalPrintable()
       } else {
         modeChr = 'A';
       }
+    } else if (this->pTSV->mode == MANUAL_MODE) {
+      modeChr = 'M';
     } else {
-      if (this->pTSV->mode == MANUAL_MODE) {
-        modeChr = 'M';
-      } else {
-        modeChr = 'X';
-      }
+      modeChr = 'X';
     }
   }
 

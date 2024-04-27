@@ -1,7 +1,7 @@
 #include <avr/wdt.h>
 #include <Wire.h>
 #include <DS3232RTC.h>
-#include "temperature_switch.h"
+#include "TemperatureSwitch.h"
 #include "MyServo.h"
 #include "MyDisplay.h"
 #include "Dusk2DawnWrap.h"

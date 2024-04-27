@@ -3,7 +3,7 @@
 
 #include <Servo.h>
 //#include <VarSpeedServo.h>  // NOTE: 回転速度が早いと感じたら利用すること
-#include "temperature_switch.h"
+#include "TemperatureSwitch.h"
 
 // 温度設定に対応する角度の最小・最大
 //#define MIN_TEMPERATURE_ANGLE 0
