@@ -140,15 +140,13 @@ void TSTask::amTask(int currentTime)
 
 void TSTask::pmTask(int currentTime)
 {
-  if (0 <= this->pTSV->sunsetTime) {
-    if ((currentTime < this->pTSV->sunriseTime || this->pTSB->pmPlusTempretureTime <= currentTime) && 0 < this->pTSB->pmPlusTempreture) {
-      // 日の出前または午後温度の開始時刻(分)を過ぎた場合
-      int plusTempreture = this->pTSV->temperature + this->pTSB->pmPlusTempreture;
-      if (MAX_TEMPERATURE < plusTempreture) {
-        plusTempreture = MAX_TEMPERATURE;
-      }
-      this->pTSV->temperature = plusTempreture;
+  if ((currentTime < this->pTSV->sunriseTime || this->pTSB->pmPlusTempretureTime <= currentTime) && 0 < this->pTSB->pmPlusTempreture) {
+    // 日の出前または午後温度の開始時刻(分)を過ぎた場合
+    int plusTempreture = this->pTSV->temperature + this->pTSB->pmPlusTempreture;
+    if (MAX_TEMPERATURE < plusTempreture) {
+      plusTempreture = MAX_TEMPERATURE;
     }
+    this->pTSV->temperature = plusTempreture;
   }
 }
 
@@ -380,6 +378,7 @@ void TSTask::setTimeMode()
 //------------------------------------------------------
 // 指定月の日数を返す
 //------------------------------------------------------
+
 int TSTask::getMonthsDays(int year, int month)
 {
   int days = 0;
