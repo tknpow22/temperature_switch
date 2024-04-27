@@ -42,7 +42,7 @@ private:
   // 午後の温度処理2
   void pmTask2(int currentTime);
   // リセットの処理
-  void resetTask();
+  void resetTask(int currentTime);
 
 public:
   // 手動モードの処理

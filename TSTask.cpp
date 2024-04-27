@@ -88,7 +88,7 @@ void TSTask::autoMode()
   this->pmTask2(currentTime);
 
   // リセットの処理
-  this->resetTask();
+  this->resetTask(currentTime);
 }
 
 //------------------------------------------------------
@@ -175,7 +175,7 @@ void TSTask::pmTask2(int currentTime)
 // リセットの処理
 //------------------------------------------------------
 
-void TSTask::resetTask()
+void TSTask::resetTask(int currentTime)
 {
   this->pTSV->isWhileReset = false;
 
@@ -183,9 +183,6 @@ void TSTask::resetTask()
     // 日の出時刻および日の入り時刻を取得できていない
     return;
   }
-
-  // 現在時刻
-  int currentTime = this->pTSV->tm.Hour * 60 + this->pTSV->tm.Minute;
 
   if (currentTime < this->pTSV->sunriseTime || this->pTSV->sunsetTime < currentTime ) {
     // 現在時刻が日の出時刻前または日の入り時刻後
