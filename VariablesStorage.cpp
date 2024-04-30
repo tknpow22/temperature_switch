@@ -59,9 +59,11 @@ void VariablesStorage::load()
     this->pTSB->latlngBag.longitudeDPart1 = DEFAULT_LONGITUDE_DPART1;
     this->pTSB->latlngBag.longitudeDPart2 = DEFAULT_LONGITUDE_DPART2;
     //
-    this->pTSB->resetParam.isReset = false;
+    this->pTSB->resetParam.resetPattern = RESET_NONE;
     this->pTSB->resetParam.intervalHour = 3;
     this->pTSB->resetParam.resetMinutes = 4;
+    this->pTSB->resetParam.exclusionHourStart = 0;
+    this->pTSB->resetParam.exclusionHourEnd = 0;
     //
     this->pTSB->typeEnd = TSB_TYPE_END;
   } else {

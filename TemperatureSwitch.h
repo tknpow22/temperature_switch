@@ -89,6 +89,20 @@
 // リセットパラメータ
 //
 
+
+// リセットパターン
+#define RESET_NONE  0 // リセットしない
+#define RESET_FULL  1 // 終日
+#define RESET_DAY   2 // 日の出から日の入りまで
+
+// リセットパターンの最小・最大
+#define MIN_RESET_PATTERN  RESET_NONE
+#define MAX_RESET_PATTERN  RESET_DAY
+
+// リセットから除外する時刻の最小・最大
+#define MIN_RESET_EXCLUSION_HOUR  0
+#define MAX_RESET_EXCLUSION_HOUR  24
+
 // リセットを行う時間間隔(時)の最小・最大
 #define MIN_RESET_INTERVAL_HOUR 1
 #define MAX_RESET_INTERVAL_HOUR 9
@@ -120,15 +134,17 @@
 #define SET_AM_START_SRATIME  6 // 日の出から処理開始までの時間(分)
 #define SET_AM_END_TEMPERATURE_TIME  7 // 処理開始から午前の最終温度に達するまでの時間(分)
 #define SET_ANGLE_CORRECTION  8 // 角度補正
-#define SET_IS_RESET  9 // リセットを行うかどうか
+#define SET_RESET_PATTERN  9 // リセットパターン
 #define SET_RESET_INTERVAL_HOUR 10  // リセットを行う時間間隔(時)
 #define SET_RESET_MINUTES 11  // リセットする時間(分)
-#define SET_LAT_IPART  12 // 緯度(整数部)
-#define SET_LAT_DPART1  13 // 緯度(少数部1)
-#define SET_LAT_DPART2  14 // 緯度(少数部2)
-#define SET_LNG_IPART  15 // 経度(整数部)
-#define SET_LNG_DPART1  16 // 経度(少数部1)
-#define SET_LNG_DPART2  17 // 経度(少数部2)
+#define SET_RESET_EXCLUSION_HOUR_START  12   // リセットから除外する時刻の開始(時)
+#define SET_RESET_EXCLUSION_HOUR_END  13   // リセットから除外する時刻の終了(時)
+#define SET_LAT_IPART  14 // 緯度(整数部)
+#define SET_LAT_DPART1  15 // 緯度(少数部1)
+#define SET_LAT_DPART2  16 // 緯度(少数部2)
+#define SET_LNG_IPART  17 // 経度(整数部)
+#define SET_LNG_DPART1  18 // 経度(少数部1)
+#define SET_LNG_DPART2  19 // 経度(少数部2)
 
 #define MIN_SET_MODE_KIND SET_AM_START_TEMPERATURE  // 設定種別の最小値
 #define MAX_SET_MODE_KIND SET_LNG_DPART2  // 設定種別の最大値
@@ -199,9 +215,11 @@ struct LatLngBag {
 
 // リセットパラメータ
 struct ResetParam {
-  bool isReset; // リセットを行うかどうか
+  int resetPattern; // リセットパターン
   int intervalHour; // リセットを行う時間間隔(時)
   int resetMinutes; // リセットする時間(分)
+  int exclusionHourStart; // リセットから除外する時刻の開始(時)
+  int exclusionHourEnd; // リセットから除外する時刻の終了(時)
 };
 
 struct TemperatureSwitchBag {
@@ -239,7 +257,7 @@ struct TSVariables {
   int setTimeModeKind = SET_TIME_UNDEFINED;  // 時刻設定種別
   int sunriseTime = -1;  // 日の出時刻
   int sunsetTime = -1;  // 日の入り時刻
-  bool isWhileReset = false;
+  bool bWhileReset = false;
   // 時刻設定用変数
   tmElements_t setTm;
   bool setTimeOk = false;

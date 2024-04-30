@@ -16,54 +16,60 @@ void TSTask::processSwt()
     this->setTimeModeTransCount = 0;
   }
 
-  if (10 < this->setTimeModeTransCount) {
+  if (this->pTSV->mode == AUTO_MODE && 10 < this->setTimeModeTransCount) {
     this->pTSV->mode = SET_TIME_MODE;
     this->pTSV->setTimeModeKind = MIN_SET_TIME_MODE_KIND;
     this->setTimeModeTransCount = 0;
     this->pTSV->setTm = this->pTSV->tm;
     this->pTSV->setTimeOk = false;
-  } else if (this->autoModeSwt == BUTTON_ON) {
-    if (this->pTSV->mode == MANUAL_MODE) {
-      this->pTSV->mode = AUTO_MODE;
-      this->pStorage->save();
-    }  
-  } else if (this->tempDownSwt == BUTTON_ON || this->tempUpSwt == BUTTON_ON) {
-    if (this->pTSV->mode == AUTO_MODE) {
-      this->pTSV->mode = MANUAL_MODE;
-    }
-  } else if (this->setModeSwt == BUTTON_ON) {
-    if (this->pTSV->mode != SET_TIME_MODE) {
-      this->pTSV->mode = SET_MODE;
+  } else if (this->pTSV->mode == MANUAL_MODE && this->autoModeSwt == BUTTON_ON) {
+    this->pTSV->mode = AUTO_MODE;
+    this->pStorage->save();
+  } else if (this->pTSV->mode == AUTO_MODE && (this->tempDownSwt == BUTTON_ON || this->tempUpSwt == BUTTON_ON)) {
+    this->pTSV->mode = MANUAL_MODE;
+  } else if ((this->pTSV->mode == AUTO_MODE || this->pTSV->mode == SET_MODE) && this->setModeSwt == BUTTON_ON) {
+    this->pTSV->mode = SET_MODE;
 
-      ++this->pTSV->setModeKind;
-      if (this->pTSV->setModeKind < MIN_SET_MODE_KIND || MAX_SET_MODE_KIND < this->pTSV->setModeKind) {
-        this->pTSV->setModeKind = MIN_SET_MODE_KIND;
-      }
-
+    if (this->autoModeSwt == BUTTON_ON) {
+      --this->pTSV->setModeKind;
     } else {
+      ++this->pTSV->setModeKind;
+    }
 
+    if (this->pTSV->setModeKind < MIN_SET_MODE_KIND) {
+      this->pTSV->setModeKind = MAX_SET_MODE_KIND;
+    } else if (MAX_SET_MODE_KIND < this->pTSV->setModeKind) {
+      this->pTSV->setModeKind = MIN_SET_MODE_KIND;
+    }
+  } else if (this->pTSV->mode == SET_TIME_MODE && this->setModeSwt == BUTTON_ON) {
+    
+    if (this->autoModeSwt == BUTTON_ON) {
+      --this->pTSV->setTimeModeKind;
+    } else {
       ++this->pTSV->setTimeModeKind;
-      if (this->pTSV->setTimeModeKind < MIN_SET_TIME_MODE_KIND || MAX_SET_TIME_MODE_KIND < this->pTSV->setTimeModeKind) {
-        this->pTSV->setTimeModeKind = MIN_SET_TIME_MODE_KIND;
-      }
     }
-  } else if (this->finishSetModeSwt == BUTTON_ON) {
-    if (this->pTSV->mode == SET_MODE || this->pTSV->mode == SET_TIME_MODE) {
-      if (this->pTSV->mode == SET_MODE) {
-        this->pTSV->setModeKind = SET_UNDEFINED;
-        this->pDusk2DawnWrap->reset(&this->pTSB->latlngBag);        
-        this->pStorage->save();
-      } else if (this->pTSV->mode == SET_TIME_MODE) {
-        this->pTSV->setTimeModeKind = SET_TIME_UNDEFINED;
-        if (this->pTSV->setTimeOk) {
-          this->pRtc->write(this->pTSV->setTm);
-          this->pRtc->read(this->pTSV->tm);
-        }
-      }
+    
+    if (this->pTSV->setTimeModeKind < MIN_SET_TIME_MODE_KIND) {
+      this->pTSV->setTimeModeKind = MAX_SET_TIME_MODE_KIND;
+    } else if (MAX_SET_TIME_MODE_KIND < this->pTSV->setTimeModeKind) {
+      this->pTSV->setTimeModeKind = MIN_SET_TIME_MODE_KIND;
+    }
 
-      this->pTSV->mode = AUTO_MODE;
-      this->pServo->reset(); // 内部変数をリセットしてサーボモーターを動かす
+  } else if ((this->pTSV->mode == SET_MODE || this->pTSV->mode == SET_TIME_MODE) && this->finishSetModeSwt == BUTTON_ON) {
+    if (this->pTSV->mode == SET_MODE) {
+      this->pTSV->setModeKind = SET_UNDEFINED;
+      this->pDusk2DawnWrap->reset(&this->pTSB->latlngBag);        
+      this->pStorage->save();
+    } else if (this->pTSV->mode == SET_TIME_MODE) {
+      this->pTSV->setTimeModeKind = SET_TIME_UNDEFINED;
+      if (this->pTSV->setTimeOk) {
+        this->pRtc->write(this->pTSV->setTm);
+        this->pRtc->read(this->pTSV->tm);
+      }
     }
+
+    this->pTSV->mode = AUTO_MODE;
+    this->pServo->reset(); // 内部変数をリセットしてサーボモーターを動かす
   }
 }
 
@@ -175,36 +181,56 @@ void TSTask::pmTask2(int currentTime)
 
 void TSTask::resetTask(int currentTime)
 {
-  this->pTSV->isWhileReset = false;
+  this->pTSV->bWhileReset = false;
+
+  if (this->pTSB->resetParam.resetPattern == RESET_NONE) {
+    // リセットしない
+    return;
+  }
 
   if (this->pTSV->sunriseTime < 0 || this->pTSV->sunsetTime < 0) {
-    // 日の出時刻および日の入り時刻を取得できていない
+    // NOTE: リセットパターンが終日の場合でも日の出時刻および日の入り時刻を取得できていない時は処理しない
     return;
   }
 
-  if (currentTime < this->pTSV->sunriseTime || this->pTSV->sunsetTime < currentTime ) {
-    // 現在時刻が日の出時刻前または日の入り時刻後
+  int startHour = 0;
+  int endHour = 24;
+
+  if (this->pTSB->resetParam.resetPattern == RESET_FULL) {
+    //startHour = 0;
+    //endHour = 24;
+  } else if (this->pTSB->resetParam.resetPattern == RESET_DAY) {
+    startHour = (this->pTSV->sunriseTime + 30) / 60;  // 30分で切り捨てまたは切り上げする
+    endHour = this->pTSV->sunsetTime / 60;
+  }
+
+  int currentHour = currentTime / 60;
+
+  if (currentHour < startHour || endHour < currentHour) {
+    // 現在時が開始時前または開始時後
     return;
   }
 
-  // 処理開始時刻
-  int startTime = this->pTSV->sunriseTime/* + this->pTSB->amStartSRATime*/;
-  if (currentTime < startTime) {
-    // 現在時刻が処理開始時刻前
+  // 除外の処理
+  if (this->pTSB->resetParam.exclusionHourEnd <= this->pTSB->resetParam.exclusionHourStart) {
+    // 除外時の開始と終了が等しいか正しくない場合はなにもしない
+  } else if (this->pTSB->resetParam.exclusionHourStart <= currentHour && currentHour <= this->pTSB->resetParam.exclusionHourEnd) {
+    // 除外時中
     return;
   }
 
-  int currentHour = this->pTSV->tm.Hour;
-  int startHour = startTime / 60;
-  int evalHour = currentHour - startHour; // 評価用時刻(時)
+  int evalHour = currentHour - startHour; // 評価用時
+  int currentMinute = currentTime % 60;
 
-  if (this->pTSB->resetParam.isReset
-    && 0 < evalHour
-    && (evalHour % this->pTSB->resetParam.intervalHour) == 0
-    && /*0 <= this->pTSV->tm.Minute &&*/ this->pTSV->tm.Minute < this->pTSB->resetParam.resetMinutes) {
+  if ((evalHour % this->pTSB->resetParam.intervalHour) == 0
+    && /*0 <= currentMinute &&*/ currentMinute < this->pTSB->resetParam.resetMinutes) {
     // 処理開始時(分は切り捨て)を基準としてリセットを行う時間間隔(時)で、正時にリセットする時間(分)だけリセットする
+    if (this->pTSB->resetParam.resetPattern == RESET_DAY && 0 == evalHour) {
+      // リセットパターンが日の出から日の入りまでの場合、日の出直後にはリセットしない
+      return;
+    }
     this->pTSV->temperature = MAX_TEMPERATURE;
-    this->pTSV->isWhileReset = true;
+    this->pTSV->bWhileReset = true;
   }
 }
 
@@ -269,12 +295,22 @@ void TSTask::setMode()
       this->pTSB->latlngBag.longitudeDPart1 = this->decValue(this->pTSB->latlngBag.longitudeDPart1, MIN_LNG_DPART);
     } else if (this->pTSV->setModeKind == SET_LNG_DPART2) {
       this->pTSB->latlngBag.longitudeDPart2 = this->decValue(this->pTSB->latlngBag.longitudeDPart2, MIN_LNG_DPART);
-    } else if (this->pTSV->setModeKind == SET_IS_RESET) {
-      this->pTSB->resetParam.isReset = !this->pTSB->resetParam.isReset;
+    } else if (this->pTSV->setModeKind == SET_RESET_PATTERN) {
+      this->pTSB->resetParam.resetPattern = this->decValue(this->pTSB->resetParam.resetPattern, MIN_RESET_PATTERN);
     } else if (this->pTSV->setModeKind == SET_RESET_INTERVAL_HOUR) {
       this->pTSB->resetParam.intervalHour = this->decValue(this->pTSB->resetParam.intervalHour, MIN_RESET_INTERVAL_HOUR);
     } else if (this->pTSV->setModeKind == SET_RESET_MINUTES) {
       this->pTSB->resetParam.resetMinutes = this->decValue(this->pTSB->resetParam.resetMinutes, MIN_RESET_MINUTES);
+    } else if (this->pTSV->setModeKind == SET_RESET_EXCLUSION_HOUR_START) {
+      this->pTSB->resetParam.exclusionHourStart = this->decValue(this->pTSB->resetParam.exclusionHourStart, MIN_RESET_EXCLUSION_HOUR);
+    } else if (this->pTSV->setModeKind == SET_RESET_EXCLUSION_HOUR_END) {
+      this->pTSB->resetParam.exclusionHourEnd = this->decValue(this->pTSB->resetParam.exclusionHourEnd, MIN_RESET_EXCLUSION_HOUR);
+
+      // リセットから除外する時刻の終了が開始より小さくなった場合、開始時刻を減らす
+      if (this->pTSB->resetParam.exclusionHourEnd < this->pTSB->resetParam.exclusionHourStart) {
+        this->pTSB->resetParam.exclusionHourStart = this->decValue(this->pTSB->resetParam.exclusionHourStart, MIN_RESET_EXCLUSION_HOUR);
+      }
+
     }
 
   } else if (this->tempUpSwt == BUTTON_ON) {
@@ -283,7 +319,6 @@ void TSTask::setMode()
     } else if (this->pTSV->setModeKind == SET_AM_END_TEMPERATURE_TIME) {
       this->pTSB->amEndTemperatureTime = this->incValue(this->pTSB->amEndTemperatureTime, MAX_AM_END_TEMPERATURE_TIME, 10);
     } else if (this->pTSV->setModeKind == SET_AM_START_TEMPERATURE) {
-
       this->pTSB->amStartTemperature = this->incValue(this->pTSB->amStartTemperature, MAX_AM_START_TEMPERATURE);
 
       if (this->pTSB->amEndTemperature < this->pTSB->amStartTemperature) {
@@ -315,12 +350,22 @@ void TSTask::setMode()
       this->pTSB->latlngBag.longitudeDPart1 = this->incValue(this->pTSB->latlngBag.longitudeDPart1, MAX_LNG_DPART);
     } else if (this->pTSV->setModeKind == SET_LNG_DPART2) {
       this->pTSB->latlngBag.longitudeDPart2 = this->incValue(this->pTSB->latlngBag.longitudeDPart2, MAX_LNG_DPART);
-    } else if (this->pTSV->setModeKind == SET_IS_RESET) {
-      this->pTSB->resetParam.isReset = !this->pTSB->resetParam.isReset;
+    } else if (this->pTSV->setModeKind == SET_RESET_PATTERN) {
+      this->pTSB->resetParam.resetPattern = this->incValue(this->pTSB->resetParam.resetPattern, MAX_RESET_PATTERN);
     } else if (this->pTSV->setModeKind == SET_RESET_INTERVAL_HOUR) {
       this->pTSB->resetParam.intervalHour = this->incValue(this->pTSB->resetParam.intervalHour, MAX_RESET_INTERVAL_HOUR);
     } else if (this->pTSV->setModeKind == SET_RESET_MINUTES) {
       this->pTSB->resetParam.resetMinutes = this->incValue(this->pTSB->resetParam.resetMinutes, MAX_RESET_MINUTES);
+    } else if (this->pTSV->setModeKind == SET_RESET_EXCLUSION_HOUR_START) {
+      this->pTSB->resetParam.exclusionHourStart = this->incValue(this->pTSB->resetParam.exclusionHourStart, MAX_RESET_EXCLUSION_HOUR);
+
+      if (this->pTSB->resetParam.exclusionHourEnd < this->pTSB->resetParam.exclusionHourStart) {
+        // リセットから除外する時刻の開始が終了より大きくなった場合、終了時刻を増やす
+        this->pTSB->resetParam.exclusionHourEnd = this->incValue(this->pTSB->resetParam.exclusionHourEnd, MAX_RESET_EXCLUSION_HOUR);
+      }
+
+    } else if (this->pTSV->setModeKind == SET_RESET_EXCLUSION_HOUR_END) {
+      this->pTSB->resetParam.exclusionHourEnd = this->incValue(this->pTSB->resetParam.exclusionHourEnd, MAX_RESET_EXCLUSION_HOUR);
     }
   }
 }

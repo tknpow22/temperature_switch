@@ -61,8 +61,8 @@ void MyDisplay::createNormalPrintable()
   char modeChr = 'A';
   {
     if (this->pTSV->mode == AUTO_MODE) {
-      if (this->pTSB->resetParam.isReset) {
-        if (this->pTSV->isWhileReset) {
+      if (this->pTSB->resetParam.resetPattern != RESET_NONE) {
+        if (this->pTSV->bWhileReset) {
           modeChr = 'R';
         } else {
           modeChr = '@';
@@ -137,17 +137,30 @@ void MyDisplay::createNormalPrintable()
       );
   }
 
-  // 例: "C00 RY H1 M1        "
+  // 例: "C00 RY H1 M1 S00 E00"
   {
-    sprintf(this->displayLines[4], "%c%02d %c%c %c%1d %c%1d        ",
+    char resetPatternChr = 'N';
+    if (this->pTSB->resetParam.resetPattern == RESET_NONE) {
+      //resetPatternChr = 'N';
+    } else if (this->pTSB->resetParam.resetPattern == RESET_FULL) {
+      resetPatternChr = 'F';
+    } else /*if (this->pTSB->resetParam.resetPattern == RESET_DAY)*/ {
+      resetPatternChr = 'D';
+    }
+
+    sprintf(this->displayLines[4], "%c%02d %c%c %c%1d %c%1d %c%02d %c%02d",
         (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_ANGLE_CORRECTION) ? 'c' : 'C',
         this->pTSB->angleCorrection,
-        (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_IS_RESET) ? 'r' : 'R',
-        (this->pTSB->resetParam.isReset) ? 'Y' : 'N',
+        (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_RESET_PATTERN) ? 'r' : 'R',
+        resetPatternChr,
         (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_RESET_INTERVAL_HOUR) ? 'h' : 'H',
         this->pTSB->resetParam.intervalHour,
         (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_RESET_MINUTES) ? 'm' : 'M',
-        this->pTSB->resetParam.resetMinutes
+        this->pTSB->resetParam.resetMinutes,
+        (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_RESET_EXCLUSION_HOUR_START) ? 's' : 'S',
+        this->pTSB->resetParam.exclusionHourStart,
+        (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_RESET_EXCLUSION_HOUR_END) ? 'e' : 'E',
+        this->pTSB->resetParam.exclusionHourEnd
       );
   }
 
