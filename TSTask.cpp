@@ -74,6 +74,30 @@ void TSTask::processSwt()
 }
 
 //------------------------------------------------------
+// モード毎の処理
+//------------------------------------------------------
+
+void TSTask::processMode()
+{
+  if (this->pTSV->mode == AUTO_MODE) {
+    // 自動
+    this->autoMode();
+
+  } else if (this->pTSV->mode == MANUAL_MODE) {
+    // 手動
+    this->manualMode();
+
+  } else if (this->pTSV->mode == SET_MODE) {
+    // 設定
+    this->setMode();
+
+  } else if (this->pTSV->mode == SET_TIME_MODE) {
+    // 時刻設定
+    this->setTimeMode();
+  }
+}
+
+//------------------------------------------------------
 // 自動モードの処理
 //------------------------------------------------------
 

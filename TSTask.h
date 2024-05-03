@@ -29,8 +29,10 @@ public:
 public:
   // タクトスイッチの処理
   void processSwt();
+  // モード毎の処理
+  void processMode();
 
-public:
+private:
   // 自動モードの処理
   void autoMode();
 
@@ -44,7 +46,7 @@ private:
   // リセットの処理
   void resetTask(int currentTime);
 
-public:
+private:
   // 手動モードの処理
   void manualMode();
   // 設定モードの処理

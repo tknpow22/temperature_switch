@@ -104,31 +104,11 @@ void loop()
   gTSTask.setModeSwt = digitalRead(SET_MODE_PIN);
   gTSTask.finishSetModeSwt = digitalRead(FINISH_SET_MODE_PIN);
 
-  //
   // タクトスイッチの処理
-  //
   gTSTask.processSwt();
 
-  //
-  // 現在のモードにあわせて処理を行う
-  //
-
-  if (gTSV.mode == AUTO_MODE) {
-    // 自動
-    gTSTask.autoMode();
-
-  } else if (gTSV.mode == MANUAL_MODE) {
-    // 手動
-    gTSTask.manualMode();
-
-  } else if (gTSV.mode == SET_MODE) {
-    // 設定
-    gTSTask.setMode();
-
-  } else if (gTSV.mode == SET_TIME_MODE) {
-    // 時刻設定
-    gTSTask.setTimeMode();
-  }
+  // モード毎の処理
+  gTSTask.processMode();
 
   // ディスプレイに表示する
   gDisplay.print();
