@@ -12,7 +12,7 @@
 
 uint8_t MyServo::attach(int pin)
 {
-  this->servo.attach(pin, MIN_SERVO_PULSE, MAX_SERVO_PULSE);
+  return this->servo.attach(pin, MIN_SERVO_PULSE, MAX_SERVO_PULSE);
 }
 
 //------------------------------------------------------
