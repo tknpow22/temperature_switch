@@ -213,7 +213,7 @@ void TSTask::resetTask(int currentTime)
   }
 
   if (this->pTSV->sunriseTime < 0 || this->pTSV->sunsetTime < 0) {
-    // NOTE: 日の出時刻および日の入り時刻を取得できていない時は処理しない
+    // NOTE: 日の出時刻または日の入り時刻を取得できていない時は処理しない
     return;
   }
 
