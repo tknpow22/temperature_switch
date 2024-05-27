@@ -17,6 +17,10 @@ void TSTask::processSwt()
   this->setModeSwt = digitalRead(SET_MODE_PIN);
   this->finishSetModeSwt = digitalRead(FINISH_SET_MODE_PIN);
 
+  //
+  // タクトスイッチの状態に応じて処理を行う
+  //
+
   if (this->autoModeSwt == BUTTON_ON) {
     ++this->setTimeModeTransCount;
   } else if (this->autoModeSwt == BUTTON_OFF) {
