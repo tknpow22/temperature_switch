@@ -62,7 +62,7 @@ private:
   // 値を減らして返す
   int decValue(int orgVal, int minValue, int subVal = 1);
 
-public:
+private:
   // タクトスイッチの状態
   int autoModeSwt = BUTTON_OFF;
   int tempDownSwt = BUTTON_OFF;

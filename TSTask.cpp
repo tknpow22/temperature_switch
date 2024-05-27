@@ -10,6 +10,13 @@
 
 void TSTask::processSwt()
 {
+  // タクトスイッチの状態を得る
+  this->autoModeSwt = digitalRead(AUTO_MODE_PIN);
+  this->tempDownSwt = digitalRead(TEMP_DOWN_PIN);
+  this->tempUpSwt = digitalRead(TEMP_UP_PIN);
+  this->setModeSwt = digitalRead(SET_MODE_PIN);
+  this->finishSetModeSwt = digitalRead(FINISH_SET_MODE_PIN);
+
   if (this->autoModeSwt == BUTTON_ON) {
     ++this->setTimeModeTransCount;
   } else if (this->autoModeSwt == BUTTON_OFF) {

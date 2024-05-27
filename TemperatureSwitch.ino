@@ -97,13 +97,6 @@ void loop()
   gTSV.sunriseTime = gDusk2DawnWrap.getSunriseTime(gTSV.tm.Year + 1970, gTSV.tm.Month, gTSV.tm.Day);
   gTSV.sunsetTime = gDusk2DawnWrap.getSunsetTime(gTSV.tm.Year + 1970, gTSV.tm.Month, gTSV.tm.Day);
 
-  // タクトスイッチの状態を得る
-  gTSTask.autoModeSwt = digitalRead(AUTO_MODE_PIN);
-  gTSTask.tempDownSwt = digitalRead(TEMP_DOWN_PIN);
-  gTSTask.tempUpSwt = digitalRead(TEMP_UP_PIN);
-  gTSTask.setModeSwt = digitalRead(SET_MODE_PIN);
-  gTSTask.finishSetModeSwt = digitalRead(FINISH_SET_MODE_PIN);
-
   // タクトスイッチの処理
   gTSTask.processSwt();
 
