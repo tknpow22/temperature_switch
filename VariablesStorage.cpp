@@ -11,7 +11,7 @@
 
 void VariablesStorage::save()
 {
-  this->pTSB->isManualMode = (this->pTSV->mode == MANUAL_MODE);
+  this->pTSB->isManualMode = (this->pTSV->itfcMode == MANUAL_MODE);
   if (this->pTSB->isManualMode) {
     this->pTSB->manualTemperature = this->pTSV->temperature;
   }
@@ -48,7 +48,7 @@ void VariablesStorage::load()
     this->pTSB->pmPlusTempreture2SSBTime = (1 * 60);
     this->pTSB->pmPlusTempreture2 = MIN_PM_PLUS_TEMPERATURE2;
     //
-    this->pTSB->isManualMode = (this->pTSV->mode == MANUAL_MODE);
+    this->pTSB->isManualMode = (this->pTSV->itfcMode == MANUAL_MODE);
     this->pTSB->manualTemperature = this->pTSV->temperature;
     //
     this->pTSB->latlngBag.latitudeIPart = DEFAULT_LATITUDE_IPART;
@@ -68,7 +68,7 @@ void VariablesStorage::load()
     this->pTSB->typeEnd = TSB_TYPE_END;
   } else {
     if (this->pTSB->isManualMode) {
-      this->pTSV->mode = MANUAL_MODE;
+      this->pTSV->itfcMode = MANUAL_MODE;
       this->pTSV->temperature = this->pTSB->manualTemperature;
     }
   }

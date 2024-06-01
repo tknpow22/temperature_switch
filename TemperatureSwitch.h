@@ -116,8 +116,8 @@
 //
 #define AUTO_MODE 0   // 自動
 #define MANUAL_MODE 1 // 手動
-#define SET_MODE  2   // 設定
-#define SET_TIME_MODE 3 // 時刻設定
+#define SETTING_MODE  2   // 設定
+#define TIME_SETTING_MODE 3 // 時刻設定
 
 //
 // 設定変更時
@@ -146,8 +146,8 @@
 #define SET_LNG_DPART1  18 // 経度(少数部1)
 #define SET_LNG_DPART2  19 // 経度(少数部2)
 
-#define MIN_SET_MODE_KIND SET_AM_START_TEMPERATURE  // 設定種別の最小値
-#define MAX_SET_MODE_KIND SET_LNG_DPART2  // 設定種別の最大値
+#define MIN_SETTING_MODE_KIND SET_AM_START_TEMPERATURE  // 設定種別の最小値
+#define MAX_SETTING_MODE_KIND SET_LNG_DPART2  // 設定種別の最大値
 
 //
 // 時刻設定
@@ -163,8 +163,8 @@
 #define SET_TIME_SECOND  5 // 秒
 #define SET_TIME_OK 6 // 確認
 
-#define MIN_SET_TIME_MODE_KIND  SET_TIME_YEAR // 時刻設定種別の最小値
-#define MAX_SET_TIME_MODE_KIND  SET_TIME_OK // 時刻設定種別の最大値
+#define MIN_TIME_SETTING_MODE_KIND  SET_TIME_YEAR // 時刻設定種別の最小値
+#define MAX_TIME_SETTING_MODE_KIND  SET_TIME_OK // 時刻設定種別の最大値
 
 //
 // ピン設定
@@ -187,10 +187,10 @@
 #define TEMP_UP_PIN 7
 
 // 設定モードピン
-#define SET_MODE_PIN  8
+#define SETTING_MODE_PIN  8
 
 // 設定モード終了ピン
-#define FINISH_SET_MODE_PIN 12
+#define FINISH_SETTING_MODE_PIN 12
 
 //
 // 設定データ
@@ -250,7 +250,7 @@ struct TemperatureSwitchBag {
 // 変数
 //
 struct TSVariables {
-  int mode = AUTO_MODE; // モード
+  int itfcMode = AUTO_MODE; // インターフェースモード
   tmElements_t tm; // 現在時刻
   int temperature = MAX_TEMPERATURE;  // 現在の温度設定
   int setModeKind = SET_UNDEFINED;  // 設定種別

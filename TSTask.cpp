@@ -14,8 +14,8 @@ void TSTask::processSwt()
   this->autoModeSwt = digitalRead(AUTO_MODE_PIN);
   this->tempDownSwt = digitalRead(TEMP_DOWN_PIN);
   this->tempUpSwt = digitalRead(TEMP_UP_PIN);
-  this->setModeSwt = digitalRead(SET_MODE_PIN);
-  this->finishSetModeSwt = digitalRead(FINISH_SET_MODE_PIN);
+  this->setModeSwt = digitalRead(SETTING_MODE_PIN);
+  this->finishSetModeSwt = digitalRead(FINISH_SETTING_MODE_PIN);
 
   //
   // タクトスイッチの状態に応じて処理を行う
@@ -27,19 +27,19 @@ void TSTask::processSwt()
     this->setTimeModeTransCount = 0;
   }
 
-  if (this->pTSV->mode == AUTO_MODE && 10 < this->setTimeModeTransCount) {
-    this->pTSV->mode = SET_TIME_MODE;
-    this->pTSV->setTimeModeKind = MIN_SET_TIME_MODE_KIND;
+  if (this->pTSV->itfcMode == AUTO_MODE && 10 < this->setTimeModeTransCount) {
+    this->setMode(TIME_SETTING_MODE);
+    this->pTSV->setTimeModeKind = MIN_TIME_SETTING_MODE_KIND;
     this->setTimeModeTransCount = 0;
     this->pTSV->setTm = this->pTSV->tm;
     this->pTSV->setTimeOk = false;
-  } else if (this->pTSV->mode == MANUAL_MODE && this->autoModeSwt == BUTTON_ON) {
-    this->pTSV->mode = AUTO_MODE;
+  } else if (this->pTSV->itfcMode == MANUAL_MODE && this->autoModeSwt == BUTTON_ON) {
+    this->setMode(AUTO_MODE);
     this->pStorage->save();
-  } else if (this->pTSV->mode == AUTO_MODE && (this->tempDownSwt == BUTTON_ON || this->tempUpSwt == BUTTON_ON)) {
-    this->pTSV->mode = MANUAL_MODE;
-  } else if ((this->pTSV->mode == AUTO_MODE || this->pTSV->mode == SET_MODE) && this->setModeSwt == BUTTON_ON) {
-    this->pTSV->mode = SET_MODE;
+  } else if (this->pTSV->itfcMode == AUTO_MODE && (this->tempDownSwt == BUTTON_ON || this->tempUpSwt == BUTTON_ON)) {
+    this->setMode(MANUAL_MODE);
+  } else if ((this->pTSV->itfcMode == AUTO_MODE || this->pTSV->itfcMode == SETTING_MODE) && this->setModeSwt == BUTTON_ON) {
+    this->setMode(SETTING_MODE);
 
     if (this->autoModeSwt == BUTTON_ON) {
       --this->pTSV->setModeKind;
@@ -47,12 +47,12 @@ void TSTask::processSwt()
       ++this->pTSV->setModeKind;
     }
 
-    if (this->pTSV->setModeKind < MIN_SET_MODE_KIND) {
-      this->pTSV->setModeKind = MAX_SET_MODE_KIND;
-    } else if (MAX_SET_MODE_KIND < this->pTSV->setModeKind) {
-      this->pTSV->setModeKind = MIN_SET_MODE_KIND;
+    if (this->pTSV->setModeKind < MIN_SETTING_MODE_KIND) {
+      this->pTSV->setModeKind = MAX_SETTING_MODE_KIND;
+    } else if (MAX_SETTING_MODE_KIND < this->pTSV->setModeKind) {
+      this->pTSV->setModeKind = MIN_SETTING_MODE_KIND;
     }
-  } else if (this->pTSV->mode == SET_TIME_MODE && this->setModeSwt == BUTTON_ON) {
+  } else if (this->pTSV->itfcMode == TIME_SETTING_MODE && this->setModeSwt == BUTTON_ON) {
     
     if (this->autoModeSwt == BUTTON_ON) {
       --this->pTSV->setTimeModeKind;
@@ -60,18 +60,18 @@ void TSTask::processSwt()
       ++this->pTSV->setTimeModeKind;
     }
     
-    if (this->pTSV->setTimeModeKind < MIN_SET_TIME_MODE_KIND) {
-      this->pTSV->setTimeModeKind = MAX_SET_TIME_MODE_KIND;
-    } else if (MAX_SET_TIME_MODE_KIND < this->pTSV->setTimeModeKind) {
-      this->pTSV->setTimeModeKind = MIN_SET_TIME_MODE_KIND;
+    if (this->pTSV->setTimeModeKind < MIN_TIME_SETTING_MODE_KIND) {
+      this->pTSV->setTimeModeKind = MAX_TIME_SETTING_MODE_KIND;
+    } else if (MAX_TIME_SETTING_MODE_KIND < this->pTSV->setTimeModeKind) {
+      this->pTSV->setTimeModeKind = MIN_TIME_SETTING_MODE_KIND;
     }
 
-  } else if ((this->pTSV->mode == SET_MODE || this->pTSV->mode == SET_TIME_MODE) && this->finishSetModeSwt == BUTTON_ON) {
-    if (this->pTSV->mode == SET_MODE) {
+  } else if ((this->pTSV->itfcMode == SETTING_MODE || this->pTSV->itfcMode == TIME_SETTING_MODE) && this->finishSetModeSwt == BUTTON_ON) {
+    if (this->pTSV->itfcMode == SETTING_MODE) {
       this->pTSV->setModeKind = SET_UNDEFINED;
       this->pDusk2DawnWrap->reset(&this->pTSB->latlngBag);        
       this->pStorage->save();
-    } else if (this->pTSV->mode == SET_TIME_MODE) {
+    } else if (this->pTSV->itfcMode == TIME_SETTING_MODE) {
       this->pTSV->setTimeModeKind = SET_TIME_UNDEFINED;
       if (this->pTSV->setTimeOk) {
         this->pRtc->write(this->pTSV->setTm);
@@ -79,7 +79,7 @@ void TSTask::processSwt()
       }
     }
 
-    this->pTSV->mode = AUTO_MODE;
+    this->setMode(AUTO_MODE);
     this->pServo->reset(); // 内部変数をリセットしてサーボモーターを動かす
   }
 }
@@ -90,21 +90,20 @@ void TSTask::processSwt()
 
 void TSTask::processMode()
 {
-  if (this->pTSV->mode == AUTO_MODE) {
+  if (this->pTSV->itfcMode == AUTO_MODE) {
     // 自動
-    this->autoMode();
+    this->processAutoMode();
 
-  } else if (this->pTSV->mode == MANUAL_MODE) {
+  } else if (this->pTSV->itfcMode == MANUAL_MODE) {
     // 手動
-    this->manualMode();
-
-  } else if (this->pTSV->mode == SET_MODE) {
+    this->processManualMode();
+  } else if (this->pTSV->itfcMode == SETTING_MODE) {
     // 設定
-    this->setMode();
+    this->processSettingMode();
 
-  } else if (this->pTSV->mode == SET_TIME_MODE) {
+  } else if (this->pTSV->itfcMode == TIME_SETTING_MODE) {
     // 時刻設定
-    this->setTimeMode();
+    this->processTimeSettingMode();
   }
 }
 
@@ -112,7 +111,7 @@ void TSTask::processMode()
 // 自動モードの処理
 //------------------------------------------------------
 
-void TSTask::autoMode()
+void TSTask::processAutoMode()
 {
   int currentTime = this->pTSV->tm.Hour * 60 + this->pTSV->tm.Minute;
 
@@ -120,23 +119,23 @@ void TSTask::autoMode()
   // NOTE: 取得に失敗している場合は共にマイナスの値が設定される。
 
   // 午前の温度処理
-  this->amTask(currentTime);
+  this->processAmTask(currentTime);
 
   // 午後の温度処理
-  this->pmTask(currentTime);
+  this->processPmTask(currentTime);
 
   // 午後の温度処理2
-  this->pmTask2(currentTime);
+  this->processPmTask2(currentTime);
 
   // リセットの処理
-  this->resetTask(currentTime);
+  this->processResetTask(currentTime);
 }
 
 //------------------------------------------------------
 // 午前の温度処理
 //------------------------------------------------------
 
-void TSTask::amTask(int currentTime)
+void TSTask::processAmTask(int currentTime)
 {
   if (0 <= this->pTSV->sunriseTime) {
 
@@ -179,7 +178,7 @@ void TSTask::amTask(int currentTime)
 // 午後の温度処理
 //------------------------------------------------------
 
-void TSTask::pmTask(int currentTime)
+void TSTask::processPmTask(int currentTime)
 {
   if ((currentTime < this->pTSV->sunriseTime || this->pTSB->pmPlusTempretureTime <= currentTime) && 0 < this->pTSB->pmPlusTempreture) {
     // 日の出前または午後温度の開始時刻(分)を過ぎた場合
@@ -195,7 +194,7 @@ void TSTask::pmTask(int currentTime)
 // 午後の温度処理2
 //------------------------------------------------------
 
-void TSTask::pmTask2(int currentTime)
+void TSTask::processPmTask2(int currentTime)
 {
   if (0 <= this->pTSV->sunsetTime) {
     int plusStartTime = this->pTSV->sunsetTime - this->pTSB->pmPlusTempreture2SSBTime;
@@ -214,7 +213,7 @@ void TSTask::pmTask2(int currentTime)
 // リセットの処理
 //------------------------------------------------------
 
-void TSTask::resetTask(int currentTime)
+void TSTask::processResetTask(int currentTime)
 {
   this->pTSV->bWhileReset = false;
 
@@ -273,7 +272,7 @@ void TSTask::resetTask(int currentTime)
 // 手動モードの処理
 //------------------------------------------------------
 
-void TSTask::manualMode()
+void TSTask::processManualMode()
 {
   if (this->tempDownSwt == BUTTON_ON) {
     // 温度設定を下げる
@@ -291,7 +290,7 @@ void TSTask::manualMode()
 // 設定モードの処理
 //------------------------------------------------------
 
-void TSTask::setMode()
+void TSTask::processSettingMode()
 {
   if (this->tempDownSwt == BUTTON_ON) {
     if (this->pTSV->setModeKind == SET_AM_START_SRATIME) {
@@ -409,7 +408,7 @@ void TSTask::setMode()
 // 時刻設定モードの処理
 //------------------------------------------------------
 
-void TSTask::setTimeMode()
+void TSTask::processTimeSettingMode()
 {
   if (this->tempDownSwt == BUTTON_ON) {
     if (this->pTSV->setTimeModeKind == SET_TIME_YEAR) {
@@ -453,6 +452,15 @@ void TSTask::setTimeMode()
       this->pTSV->setTimeOk = !this->pTSV->setTimeOk;
     }
   }
+}
+
+//------------------------------------------------------
+// モードの設定
+//------------------------------------------------------
+
+void TSTask::setMode(int mode)
+{
+  this->pTSV->itfcMode = mode;
 }
 
 //------------------------------------------------------

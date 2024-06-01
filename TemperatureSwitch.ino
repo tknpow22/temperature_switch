@@ -80,8 +80,8 @@ void setup()
   pinMode(AUTO_MODE_PIN, INPUT);
   pinMode(TEMP_DOWN_PIN, INPUT);
   pinMode(TEMP_UP_PIN, INPUT);
-  pinMode(SET_MODE_PIN, INPUT);
-  pinMode(FINISH_SET_MODE_PIN, INPUT);
+  pinMode(SETTING_MODE_PIN, INPUT);
+  pinMode(FINISH_SETTING_MODE_PIN, INPUT);
 }
 
 //------------------------------------------------------

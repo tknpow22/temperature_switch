@@ -25,7 +25,7 @@ void MyDisplay::print()
   this->createPrintable();
 
   int startVirRow = 0;
-  if (this->pTSV->mode == SET_MODE) {
+  if (this->pTSV->itfcMode == SETTING_MODE) {
 
     if (SET_LNG_IPART <= this->pTSV->setModeKind) {
       startVirRow = 3;
@@ -45,7 +45,7 @@ void MyDisplay::print()
 
 void MyDisplay::createPrintable()
 {
-  if (this->pTSV->mode != SET_TIME_MODE) {
+  if (this->pTSV->itfcMode != TIME_SETTING_MODE) {
     createNormalPrintable();
   } else {
     createSetTimeModePrintable();
@@ -60,7 +60,7 @@ void MyDisplay::createNormalPrintable()
 {
   char modeChr = 'A';
   {
-    if (this->pTSV->mode == AUTO_MODE) {
+    if (this->pTSV->itfcMode == AUTO_MODE) {
       if (this->pTSB->resetParam.resetPattern != RESET_NONE) {
         if (this->pTSV->bWhileReset) {
           modeChr = 'R';
@@ -70,7 +70,7 @@ void MyDisplay::createNormalPrintable()
       } else {
         modeChr = 'A';
       }
-    } else if (this->pTSV->mode == MANUAL_MODE) {
+    } else if (this->pTSV->itfcMode == MANUAL_MODE) {
       modeChr = 'M';
     } else {
       modeChr = 'X';
@@ -94,9 +94,9 @@ void MyDisplay::createNormalPrintable()
       (0 <= this->pTSV->sunriseTime) ? (this->pTSV->sunriseTime % 60) : 99,
       (0 <= this->pTSV->sunsetTime) ? (this->pTSV->sunsetTime / 60) : 99,
       (0 <= this->pTSV->sunsetTime) ? (this->pTSV->sunsetTime % 60) : 99,
-      (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_AM_START_TEMPERATURE) ? 's' : 'S',
+      (this->pTSV->itfcMode == SETTING_MODE && this->pTSV->setModeKind == SET_AM_START_TEMPERATURE) ? 's' : 'S',
       this->pTSB->amStartTemperature,
-      (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_AM_END_TEMPERATURE) ? 'e' : 'E',
+      (this->pTSV->itfcMode == SETTING_MODE && this->pTSV->setModeKind == SET_AM_END_TEMPERATURE) ? 'e' : 'E',
       this->pTSB->amEndTemperature
     );
 
@@ -104,17 +104,17 @@ void MyDisplay::createNormalPrintable()
   {
     int plusStartTime2 = this->pTSV->sunsetTime - this->pTSB->pmPlusTempreture2SSBTime;
     sprintf(this->displayLines[2], "%c%02d%02d%c%01d %c%01d%01d-%02d%02d%c%01d  ",
-        (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_PLUS_PM_TEMPERATURE_TIME) ? 'p' : 'P',
+        (this->pTSV->itfcMode == SETTING_MODE && this->pTSV->setModeKind == SET_PLUS_PM_TEMPERATURE_TIME) ? 'p' : 'P',
         this->pTSB->pmPlusTempretureTime / 60,
         this->pTSB->pmPlusTempretureTime % 60,
-        (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_PLUS_PM_TEMPERATURE) ? 'a' : 'A',
+        (this->pTSV->itfcMode == SETTING_MODE && this->pTSV->setModeKind == SET_PLUS_PM_TEMPERATURE) ? 'a' : 'A',
         this->pTSB->pmPlusTempreture,
-        (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_PLUS_END_TEMPERATURE_SSBTIME2) ? 'b' : 'B',
+        (this->pTSV->itfcMode == SETTING_MODE && this->pTSV->setModeKind == SET_PLUS_END_TEMPERATURE_SSBTIME2) ? 'b' : 'B',
         this->pTSB->pmPlusTempreture2SSBTime / 60,
         (this->pTSB->pmPlusTempreture2SSBTime % 60) / 10,
         plusStartTime2 / 60,
         plusStartTime2 % 60,
-        (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_PLUS_END_TEMPERATURE2) ? 'a' : 'A',
+        (this->pTSV->itfcMode == SETTING_MODE && this->pTSV->setModeKind == SET_PLUS_END_TEMPERATURE2) ? 'a' : 'A',
         this->pTSB->pmPlusTempreture2
       );
   }
@@ -124,12 +124,12 @@ void MyDisplay::createNormalPrintable()
     int startTime = this->pTSV->sunriseTime + this->pTSB->amStartSRATime;
     int endTime = startTime + this->pTSB->amEndTemperatureTime;
     sprintf(this->displayLines[3], "%c%01d%01d-%02d%02d %c%01d%01d-%02d%02d   ",
-        (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_AM_START_SRATIME) ? 's' : 'S',
+        (this->pTSV->itfcMode == SETTING_MODE && this->pTSV->setModeKind == SET_AM_START_SRATIME) ? 's' : 'S',
         this->pTSB->amStartSRATime / 60,
         (this->pTSB->amStartSRATime % 60) / 10,
         startTime / 60,
         startTime % 60,
-        (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_AM_END_TEMPERATURE_TIME) ? 'e' : 'E',
+        (this->pTSV->itfcMode == SETTING_MODE && this->pTSV->setModeKind == SET_AM_END_TEMPERATURE_TIME) ? 'e' : 'E',
         this->pTSB->amEndTemperatureTime / 60,
         (this->pTSB->amEndTemperatureTime % 60) / 10,
         endTime / 60,
@@ -149,17 +149,17 @@ void MyDisplay::createNormalPrintable()
     }
 
     sprintf(this->displayLines[4], "%c%02d %c%c %c%1d %c%1d %c%02d %c%02d",
-        (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_ANGLE_CORRECTION) ? 'c' : 'C',
+        (this->pTSV->itfcMode == SETTING_MODE && this->pTSV->setModeKind == SET_ANGLE_CORRECTION) ? 'c' : 'C',
         this->pTSB->angleCorrection,
-        (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_RESET_PATTERN) ? 'r' : 'R',
+        (this->pTSV->itfcMode == SETTING_MODE && this->pTSV->setModeKind == SET_RESET_PATTERN) ? 'r' : 'R',
         resetPatternChr,
-        (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_RESET_INTERVAL_HOUR) ? 'h' : 'H',
+        (this->pTSV->itfcMode == SETTING_MODE && this->pTSV->setModeKind == SET_RESET_INTERVAL_HOUR) ? 'h' : 'H',
         this->pTSB->resetParam.intervalHour,
-        (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_RESET_MINUTES) ? 'm' : 'M',
+        (this->pTSV->itfcMode == SETTING_MODE && this->pTSV->setModeKind == SET_RESET_MINUTES) ? 'm' : 'M',
         this->pTSB->resetParam.resetMinutes,
-        (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_RESET_EXCLUSION_HOUR_START) ? 's' : 'S',
+        (this->pTSV->itfcMode == SETTING_MODE && this->pTSV->setModeKind == SET_RESET_EXCLUSION_HOUR_START) ? 's' : 'S',
         this->pTSB->resetParam.exclusionHourStart,
-        (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_RESET_EXCLUSION_HOUR_END) ? 'e' : 'E',
+        (this->pTSV->itfcMode == SETTING_MODE && this->pTSV->setModeKind == SET_RESET_EXCLUSION_HOUR_END) ? 'e' : 'E',
         this->pTSB->resetParam.exclusionHourEnd
       );
   }
@@ -167,12 +167,12 @@ void MyDisplay::createNormalPrintable()
   // 例: "LAT IXXXX.D YY YY   "
   {
     sprintf(this->displayLines[5], "LAT %c%4d.%c%c%02d%c%02d   ",
-        (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_LAT_IPART) ? 'i' : 'I',
+        (this->pTSV->itfcMode == SETTING_MODE && this->pTSV->setModeKind == SET_LAT_IPART) ? 'i' : 'I',
         this->pTSB->latlngBag.latitudeIPart,
-        (this->pTSV->mode == SET_MODE && (this->pTSV->setModeKind == SET_LAT_DPART1 || this->pTSV->setModeKind == SET_LAT_DPART2)) ? 'd' : 'D',
-        (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_LAT_DPART1) ? '>' : ' ',
+        (this->pTSV->itfcMode == SETTING_MODE && (this->pTSV->setModeKind == SET_LAT_DPART1 || this->pTSV->setModeKind == SET_LAT_DPART2)) ? 'd' : 'D',
+        (this->pTSV->itfcMode == SETTING_MODE && this->pTSV->setModeKind == SET_LAT_DPART1) ? '>' : ' ',
         this->pTSB->latlngBag.latitudeDPart1,
-        (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_LAT_DPART2) ? '>' : ' ',
+        (this->pTSV->itfcMode == SETTING_MODE && this->pTSV->setModeKind == SET_LAT_DPART2) ? '>' : ' ',
         this->pTSB->latlngBag.latitudeDPart2
       );
   }
@@ -180,12 +180,12 @@ void MyDisplay::createNormalPrintable()
   // 例: "LNG IXXXX.D YY YY   "
   {
     sprintf(this->displayLines[6], "LNG %c%4d.%c%c%02d%c%02d   ",
-        (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_LNG_IPART) ? 'i' : 'I',
+        (this->pTSV->itfcMode == SETTING_MODE && this->pTSV->setModeKind == SET_LNG_IPART) ? 'i' : 'I',
         this->pTSB->latlngBag.longitudeIPart,
-        (this->pTSV->mode == SET_MODE && (this->pTSV->setModeKind == SET_LNG_DPART1 || this->pTSV->setModeKind == SET_LNG_DPART2)) ? 'd' : 'D',
-        (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_LNG_DPART1) ? '>' : ' ',
+        (this->pTSV->itfcMode == SETTING_MODE && (this->pTSV->setModeKind == SET_LNG_DPART1 || this->pTSV->setModeKind == SET_LNG_DPART2)) ? 'd' : 'D',
+        (this->pTSV->itfcMode == SETTING_MODE && this->pTSV->setModeKind == SET_LNG_DPART1) ? '>' : ' ',
         this->pTSB->latlngBag.longitudeDPart1,
-        (this->pTSV->mode == SET_MODE && this->pTSV->setModeKind == SET_LNG_DPART2) ? '>' : ' ',
+        (this->pTSV->itfcMode == SETTING_MODE && this->pTSV->setModeKind == SET_LNG_DPART2) ? '>' : ' ',
         this->pTSB->latlngBag.longitudeDPart2
       );
   }

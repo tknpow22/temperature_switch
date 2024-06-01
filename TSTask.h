@@ -34,25 +34,29 @@ public:
 
 private:
   // 自動モードの処理
-  void autoMode();
+  void processAutoMode();
 
 private:
   // 午前の温度処理
-  void amTask(int currentTime);
+  void processAmTask(int currentTime);
   // 午後の温度処理
-  void pmTask(int currentTime);
+  void processPmTask(int currentTime);
   // 午後の温度処理2
-  void pmTask2(int currentTime);
+  void processPmTask2(int currentTime);
   // リセットの処理
-  void resetTask(int currentTime);
+  void processResetTask(int currentTime);
 
 private:
   // 手動モードの処理
-  void manualMode();
+  void processManualMode();
   // 設定モードの処理
-  void setMode();
+  void processSettingMode();
   // 時刻設定モードの処理
-  void setTimeMode();
+  void processTimeSettingMode();
+
+private:
+  // モードの設定
+  void setMode(int mode);
 
 private:
   // 指定月の日数を返す

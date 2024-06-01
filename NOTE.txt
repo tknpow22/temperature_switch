@@ -1,0 +1,4 @@
+- mode -> itfcMode へ変更
+- actMode の追加
+
+TODO: actMode で動作を決めるように変更予定。
