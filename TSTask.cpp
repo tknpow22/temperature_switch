@@ -97,6 +97,7 @@ void TSTask::processMode()
   } else if (this->pTSV->itfcMode == MANUAL_MODE) {
     // 手動
     this->processManualMode();
+    
   } else if (this->pTSV->itfcMode == SETTING_MODE) {
     // 設定
     this->processSettingMode();
