@@ -251,6 +251,7 @@ struct TemperatureSwitchBag {
 //
 struct TSVariables {
   int itfcMode = AUTO_MODE; // インターフェースモード
+  int actMode = AUTO_MODE; // 動作モード(AUTO_MODE、MANUAL_MODE のいずれか)
   tmElements_t tm; // 現在時刻
   int temperature = MAX_TEMPERATURE;  // 現在の温度設定
   int setModeKind = SET_UNDEFINED;  // 設定種別

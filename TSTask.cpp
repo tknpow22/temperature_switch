@@ -90,15 +90,17 @@ void TSTask::processSwt()
 
 void TSTask::processMode()
 {
-  if (this->pTSV->itfcMode == AUTO_MODE) {
+  if (this->pTSV->actMode == AUTO_MODE) {
     // 自動
     this->processAutoMode();
 
-  } else if (this->pTSV->itfcMode == MANUAL_MODE) {
+  } else if (this->pTSV->actMode == MANUAL_MODE) {
     // 手動
     this->processManualMode();
+
+  }
     
-  } else if (this->pTSV->itfcMode == SETTING_MODE) {
+  if (this->pTSV->itfcMode == SETTING_MODE) {
     // 設定
     this->processSettingMode();
 
@@ -462,6 +464,12 @@ void TSTask::processTimeSettingMode()
 void TSTask::setMode(int mode)
 {
   this->pTSV->itfcMode = mode;
+  switch (mode) {
+    case AUTO_MODE:
+    case MANUAL_MODE:
+      this->pTSV->actMode = mode;
+      break;
+  }
 }
 
 //------------------------------------------------------

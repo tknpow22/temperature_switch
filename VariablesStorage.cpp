@@ -11,7 +11,7 @@
 
 void VariablesStorage::save()
 {
-  this->pTSB->isManualMode = (this->pTSV->itfcMode == MANUAL_MODE);
+  this->pTSB->isManualMode = (this->pTSV->actMode == MANUAL_MODE);
   if (this->pTSB->isManualMode) {
     this->pTSB->manualTemperature = this->pTSV->temperature;
   }
@@ -69,6 +69,7 @@ void VariablesStorage::load()
   } else {
     if (this->pTSB->isManualMode) {
       this->pTSV->itfcMode = MANUAL_MODE;
+      this->pTSV->actMode = MANUAL_MODE;
       this->pTSV->temperature = this->pTSB->manualTemperature;
     }
   }
