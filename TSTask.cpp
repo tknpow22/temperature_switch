@@ -266,7 +266,6 @@ void TSTask::processResetTask(int currentTime)
       // リセットパターンが日の出から日の入りまでの場合、日の出直後にはリセットしない
       return;
     }
-    this->pTSV->temperature = MAX_TEMPERATURE;
     this->pTSV->bWhileReset = true;
   }
 }

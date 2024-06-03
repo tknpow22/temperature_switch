@@ -58,18 +58,20 @@ void MyDisplay::createPrintable()
 
 void MyDisplay::createNormalPrintable()
 {
+  char resetChr = ' ';
+  if (this->pTSV->bWhileReset) {
+    resetChr = 'R';
+  } else {
+    if (this->pTSB->resetParam.resetPattern != RESET_NONE) {
+      resetChr = '@';
+    }
+  }
+
+
   char modeChr = 'A';
   {
     if (this->pTSV->itfcMode == AUTO_MODE) {
-      if (this->pTSB->resetParam.resetPattern != RESET_NONE) {
-        if (this->pTSV->bWhileReset) {
-          modeChr = 'R';
-        } else {
-          modeChr = '@';
-        }
-      } else {
-        modeChr = 'A';
-      }
+      modeChr = 'A';
     } else if (this->pTSV->itfcMode == MANUAL_MODE) {
       modeChr = 'M';
     } else {
@@ -77,13 +79,14 @@ void MyDisplay::createNormalPrintable()
     }
   }
 
-  // 例: "2023/11/13 15:15 A29"
-  sprintf(this->displayLines[0], "%04d/%02d/%02d %02d:%02d %c%02d",
+  // 例: "2023/11/13 15:15@A29"
+  sprintf(this->displayLines[0], "%04d/%02d/%02d %02d:%02d%c%c%02d",
       this->pTSV->tm.Year + 1970,
       this->pTSV->tm.Month,
       this->pTSV->tm.Day,
       this->pTSV->tm.Hour,
       this->pTSV->tm.Minute,
+      resetChr,
       modeChr,
       this->pTSV->temperature
     );

@@ -48,7 +48,7 @@ void VariablesStorage::load()
     this->pTSB->pmPlusTempreture2SSBTime = (1 * 60);
     this->pTSB->pmPlusTempreture2 = MIN_PM_PLUS_TEMPERATURE2;
     //
-    this->pTSB->isManualMode = (this->pTSV->itfcMode == MANUAL_MODE);
+    this->pTSB->isManualMode = (this->pTSV->actMode == MANUAL_MODE);
     this->pTSB->manualTemperature = this->pTSV->temperature;
     //
     this->pTSB->latlngBag.latitudeIPart = DEFAULT_LATITUDE_IPART;
@@ -61,7 +61,7 @@ void VariablesStorage::load()
     //
     this->pTSB->resetParam.resetPattern = RESET_NONE;
     this->pTSB->resetParam.intervalHour = 3;
-    this->pTSB->resetParam.resetMinutes = 4;
+    this->pTSB->resetParam.resetMinutes = 3;
     this->pTSB->resetParam.exclusionHourStart = 0;
     this->pTSB->resetParam.exclusionHourEnd = 0;
     //
