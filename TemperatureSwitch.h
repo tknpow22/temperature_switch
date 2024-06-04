@@ -198,7 +198,7 @@
 
 #define TSB_TYPE_BEGIN  'T'
 #define TSB_TYPE_END  'S'
-#define TSB_TYPE_VERSION  6
+#define TSB_TYPE_VERSION  7
 
 // 緯度・経度保存用
 struct LatLngBag {
@@ -236,8 +236,8 @@ struct TemperatureSwitchBag {
   int pmPlusTempreture2SSBTime;  // 午後温度2を開始する日の入り前の時間(分)
   int pmPlusTempreture2; // 午後温度2での追加温度
   // 現在の設定を覚える
-  bool isManualMode; // 手動時か否か
-  int manualTemperature;  // 手動時の温度設定
+  int actMode;  // 動作モード(AUTO_MODE、MANUAL_MODE のいずれか)
+  int temperature;  // 現在の温度設定(MANUAL_MODE の時のみ有効)
   // 緯度・経度
   LatLngBag latlngBag;
   // リセットパラメータ
@@ -251,14 +251,14 @@ struct TemperatureSwitchBag {
 //
 struct TSVariables {
   int itfcMode = AUTO_MODE; // インターフェースモード
-  int actMode = AUTO_MODE; // 動作モード(AUTO_MODE、MANUAL_MODE のいずれか)
   tmElements_t tm; // 現在時刻
-  int temperature = MAX_TEMPERATURE;  // 現在の温度設定
   int setModeKind = SET_UNDEFINED;  // 設定種別
   int setTimeModeKind = SET_TIME_UNDEFINED;  // 時刻設定種別
   int sunriseTime = -1;  // 日の出時刻
   int sunsetTime = -1;  // 日の入り時刻
-  bool bWhileReset = false;
+  //
+  long resetStartSecTime = -1;  // リセットの開始時刻(秒)
+  long resetEndSecTime = -1;    // リセットの終了時刻(分)
   // 時刻設定用変数
   tmElements_t setTm;
   bool setTimeOk = false;

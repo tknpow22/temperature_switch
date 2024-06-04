@@ -5,6 +5,17 @@
 ////////////////////////////////////////////////////////
 
 //------------------------------------------------------
+// 準備処理(一連の処理の前に呼び出すこと)
+//------------------------------------------------------
+
+void TSTask::prepare()
+{
+  // 現在時刻を設定する
+  this->currentTime = this->pTSV->tm.Hour * 60 + this->pTSV->tm.Minute;
+  this->currentSecTime = ((long)this->currentTime * 60) + this->pTSV->tm.Second;
+}
+
+//------------------------------------------------------
 // タクトスイッチの処理
 //------------------------------------------------------
 
@@ -27,12 +38,25 @@ void TSTask::processSwt()
     this->setTimeModeTransCount = 0;
   }
 
+  if (this->finishSetModeSwt == BUTTON_ON) {
+    ++this->immediatelyResetTransCount;
+  } else if (this->finishSetModeSwt == BUTTON_OFF) {
+    this->immediatelyResetTransCount = 0;
+  }
+
   if (this->pTSV->itfcMode == AUTO_MODE && 10 < this->setTimeModeTransCount) {
     this->setMode(TIME_SETTING_MODE);
+
+    this->cancelReset();
+
     this->pTSV->setTimeModeKind = MIN_TIME_SETTING_MODE_KIND;
     this->setTimeModeTransCount = 0;
+    
     this->pTSV->setTm = this->pTSV->tm;
     this->pTSV->setTimeOk = false;
+  } else if ((this->pTSV->itfcMode == AUTO_MODE || this->pTSV->itfcMode == MANUAL_MODE) && 10 < this->immediatelyResetTransCount) {
+    this->setReset();
+    this->immediatelyResetTransCount = 0;
   } else if (this->pTSV->itfcMode == MANUAL_MODE && this->autoModeSwt == BUTTON_ON) {
     this->setMode(AUTO_MODE);
     this->pStorage->save();
@@ -40,6 +64,8 @@ void TSTask::processSwt()
     this->setMode(MANUAL_MODE);
   } else if ((this->pTSV->itfcMode == AUTO_MODE || this->pTSV->itfcMode == SETTING_MODE) && this->setModeSwt == BUTTON_ON) {
     this->setMode(SETTING_MODE);
+
+    this->cancelReset();
 
     if (this->autoModeSwt == BUTTON_ON) {
       --this->pTSV->setModeKind;
@@ -90,14 +116,13 @@ void TSTask::processSwt()
 
 void TSTask::processMode()
 {
-  if (this->pTSV->actMode == AUTO_MODE) {
+  if (this->pTSB->actMode == AUTO_MODE) {
     // 自動
     this->processAutoMode();
 
-  } else if (this->pTSV->actMode == MANUAL_MODE) {
+  } else if (this->pTSB->actMode == MANUAL_MODE) {
     // 手動
     this->processManualMode();
-
   }
     
   if (this->pTSV->itfcMode == SETTING_MODE) {
@@ -116,41 +141,42 @@ void TSTask::processMode()
 
 void TSTask::processAutoMode()
 {
-  int currentTime = this->pTSV->tm.Hour * 60 + this->pTSV->tm.Minute;
-
   // pTSV->sunriseTime および pTSV->sunsetTime には日の出時刻および日の入り時刻が、深夜 0 時からの時間(分)で入っている。
   // NOTE: 取得に失敗している場合は共にマイナスの値が設定される。
 
   // 午前の温度処理
-  this->processAmTask(currentTime);
+  this->processAmTask();
 
   // 午後の温度処理
-  this->processPmTask(currentTime);
+  this->processPmTask();
 
   // 午後の温度処理2
-  this->processPmTask2(currentTime);
+  this->processPmTask2();
 
   // リセットの処理
-  this->processResetTask(currentTime);
+  this->processResetTask();
+
+  // リセットのチェック処理
+  this->processResetCheck();
 }
 
 //------------------------------------------------------
 // 午前の温度処理
 //------------------------------------------------------
 
-void TSTask::processAmTask(int currentTime)
+void TSTask::processAmTask()
 {
   if (0 <= this->pTSV->sunriseTime) {
 
     int startTime = this->pTSV->sunriseTime + this->pTSB->amStartSRATime;
     int endTime = startTime + this->pTSB->amEndTemperatureTime;
 
-    if (currentTime < this->pTSV->sunriseTime) {
-      this->pTSV->temperature = this->pTSB->amEndTemperature;
-    } else if (this->pTSV->sunriseTime <= currentTime && currentTime < startTime) {
+    if (this->currentTime < this->pTSV->sunriseTime) {
+      this->pTSB->temperature = this->pTSB->amEndTemperature;
+    } else if (this->pTSV->sunriseTime <= this->currentTime && this->currentTime < startTime) {
       // 朝すぐの時間帯は温度があまり上がらず、かつ換気したいため、ある程度初期温度時間を長くとるために
       // 日の出から処理開始までの期間は初期温度を設定する
-      this->pTSV->temperature = this->pTSB->amStartTemperature;
+      this->pTSB->temperature = this->pTSB->amStartTemperature;
     } else {
       int timeSpan = endTime - startTime; // NOTE: 現在の仕様では this->pTSB->amEndTemperatureTime に等しい
       int tempSpan = this->pTSB->amEndTemperature - this->pTSB->amStartTemperature;
@@ -160,18 +186,18 @@ void TSTask::processAmTask(int currentTime)
         int setTemperature = this->pTSB->amStartTemperature;
 
         while (setTemperature <= this->pTSB->amEndTemperature) {
-          if (timeStep <= currentTime && currentTime < timeStep + timeRange) {
-            this->pTSV->temperature = setTemperature;
+          if (timeStep <= this->currentTime && this->currentTime < timeStep + timeRange) {
+            this->pTSB->temperature = setTemperature;
             break;
           }
           timeStep += timeRange;
           ++setTemperature;
         }
         if (this->pTSB->amEndTemperature < setTemperature) {
-          this->pTSV->temperature = this->pTSB->amEndTemperature;
+          this->pTSB->temperature = this->pTSB->amEndTemperature;
         }
       } else /* tempSpan == 0 */ {
-        this->pTSV->temperature = this->pTSB->amEndTemperature;
+        this->pTSB->temperature = this->pTSB->amEndTemperature;
       }
     }
   }
@@ -181,15 +207,15 @@ void TSTask::processAmTask(int currentTime)
 // 午後の温度処理
 //------------------------------------------------------
 
-void TSTask::processPmTask(int currentTime)
+void TSTask::processPmTask()
 {
-  if ((currentTime < this->pTSV->sunriseTime || this->pTSB->pmPlusTempretureTime <= currentTime) && 0 < this->pTSB->pmPlusTempreture) {
+  if ((this->currentTime < this->pTSV->sunriseTime || this->pTSB->pmPlusTempretureTime <= this->currentTime) && 0 < this->pTSB->pmPlusTempreture) {
     // 日の出前または午後温度の開始時刻(分)を過ぎた場合
-    int plusTempreture = this->pTSV->temperature + this->pTSB->pmPlusTempreture;
+    int plusTempreture = this->pTSB->temperature + this->pTSB->pmPlusTempreture;
     if (MAX_TEMPERATURE < plusTempreture) {
       plusTempreture = MAX_TEMPERATURE;
     }
-    this->pTSV->temperature = plusTempreture;
+    this->pTSB->temperature = plusTempreture;
   }
 }
 
@@ -197,17 +223,17 @@ void TSTask::processPmTask(int currentTime)
 // 午後の温度処理2
 //------------------------------------------------------
 
-void TSTask::processPmTask2(int currentTime)
+void TSTask::processPmTask2()
 {
   if (0 <= this->pTSV->sunsetTime) {
     int plusStartTime = this->pTSV->sunsetTime - this->pTSB->pmPlusTempreture2SSBTime;
-    if ((currentTime < this->pTSV->sunriseTime || plusStartTime <= currentTime) && 0 < this->pTSB->pmPlusTempreture2) {
+    if ((this->currentTime < this->pTSV->sunriseTime || plusStartTime <= this->currentTime) && 0 < this->pTSB->pmPlusTempreture2) {
       // 日の出前または午後温度2を開始する日の入り前の時間(分)を過ぎた場合
-      int plusTempreture = this->pTSV->temperature + this->pTSB->pmPlusTempreture2;
+      int plusTempreture = this->pTSB->temperature + this->pTSB->pmPlusTempreture2;
       if (MAX_TEMPERATURE < plusTempreture) {
         plusTempreture = MAX_TEMPERATURE;
       }
-      this->pTSV->temperature = plusTempreture;
+      this->pTSB->temperature = plusTempreture;
     }
   }
 }
@@ -216,12 +242,15 @@ void TSTask::processPmTask2(int currentTime)
 // リセットの処理
 //------------------------------------------------------
 
-void TSTask::processResetTask(int currentTime)
+void TSTask::processResetTask()
 {
-  this->pTSV->bWhileReset = false;
+  if (0 <= this->pTSV->resetStartSecTime) {
+    // リセット開始時刻が設定されている場合は処理しない
+    return;
+  }
 
   if (this->pTSB->resetParam.resetPattern == RESET_NONE) {
-    // リセットしない
+    // リセットしないときは処理しない
     return;
   }
 
@@ -241,7 +270,7 @@ void TSTask::processResetTask(int currentTime)
     endHour = this->pTSV->sunsetTime / 60;
   }
 
-  int currentHour = currentTime / 60;
+  int currentHour = this->pTSV->tm.Hour;
 
   if (currentHour < startHour || endHour < currentHour) {
     // 現在時が開始時前または開始時後
@@ -257,17 +286,52 @@ void TSTask::processResetTask(int currentTime)
   }
 
   int evalHour = currentHour - startHour; // 評価用時
-  int currentMinute = currentTime % 60;
+  int currentMinute = this->pTSV->tm.Minute;
+  int currentSecond = this->pTSV->tm.Second;
 
-  if ((evalHour % this->pTSB->resetParam.intervalHour) == 0
-    && /*0 <= currentMinute &&*/ currentMinute < this->pTSB->resetParam.resetMinutes) {
-    // 処理開始時(分は切り捨て)を基準としてリセットを行う時間間隔(時)で、正時にリセットする時間(分)だけリセットする
+  if ((evalHour % this->pTSB->resetParam.intervalHour) == 0 && currentMinute == 0 && currentSecond == 0) {
+    // 処理開始時(分は切り捨て)を基準としてリセットを行う時間間隔(時)で、正時にリセットする時間(分)だけリセットを開始する
     if (this->pTSB->resetParam.resetPattern == RESET_DAY && 0 == evalHour) {
       // リセットパターンが日の出から日の入りまでの場合、日の出直後にはリセットしない
       return;
     }
-    this->pTSV->bWhileReset = true;
+    this->setReset();
   }
+}
+
+//------------------------------------------------------
+// リセットのチェック処理
+//------------------------------------------------------
+
+void TSTask::processResetCheck()
+{
+  if (0 <= this->pTSV->resetStartSecTime) {
+    if (this->pTSV->resetStartSecTime <= this->currentSecTime && this->currentSecTime < this->pTSV->resetEndSecTime) {
+      // リセット中
+    } else {
+      this->cancelReset();
+    }
+  }
+}
+
+//------------------------------------------------------
+// リセットの設定処理
+//------------------------------------------------------
+
+void TSTask::setReset()
+{
+  this->pTSV->resetStartSecTime = this->currentSecTime;
+  this->pTSV->resetEndSecTime = this->currentSecTime + (this->pTSB->resetParam.resetMinutes * 60);
+}
+
+//------------------------------------------------------
+// リセットのキャンセル処理
+//------------------------------------------------------
+
+void TSTask::cancelReset()
+{
+  this->pTSV->resetStartSecTime = -1;
+  this->pTSV->resetEndSecTime = -1;
 }
 
 //------------------------------------------------------
@@ -278,14 +342,20 @@ void TSTask::processManualMode()
 {
   if (this->tempDownSwt == BUTTON_ON) {
     // 温度設定を下げる
-    this->pTSV->temperature = this->decValue(this->pTSV->temperature, MIN_TEMPERATURE);
-
+    this->pTSB->temperature = this->decValue(this->pTSB->temperature, MIN_TEMPERATURE);
+    this->pStorage->save();
   } else if (this->tempUpSwt == BUTTON_ON) {
     // 温度設定を上げる
-    this->pTSV->temperature = this->incValue(this->pTSV->temperature, MAX_TEMPERATURE);
+    this->pTSB->temperature = this->incValue(this->pTSB->temperature, MAX_TEMPERATURE);
+    this->pStorage->save();
   }
 
-  this->pStorage->save();
+  if (this->setModeSwt == BUTTON_ON) {
+    this->cancelReset();
+  }
+
+  // リセットのチェック処理
+  this->processResetCheck();
 }
 
 //------------------------------------------------------
@@ -466,7 +536,7 @@ void TSTask::setMode(int mode)
   switch (mode) {
     case AUTO_MODE:
     case MANUAL_MODE:
-      this->pTSV->actMode = mode;
+      this->pTSB->actMode = mode;
       break;
   }
 }

@@ -59,24 +59,21 @@ void MyDisplay::createPrintable()
 void MyDisplay::createNormalPrintable()
 {
   char resetChr = ' ';
-  if (this->pTSV->bWhileReset) {
+  if (0 <= this->pTSV->resetStartSecTime) {
     resetChr = 'R';
   } else {
-    if (this->pTSB->resetParam.resetPattern != RESET_NONE) {
+    if (this->pTSB->actMode == AUTO_MODE && this->pTSB->resetParam.resetPattern != RESET_NONE) {
       resetChr = '@';
     }
   }
 
-
   char modeChr = 'A';
-  {
-    if (this->pTSV->itfcMode == AUTO_MODE) {
-      modeChr = 'A';
-    } else if (this->pTSV->itfcMode == MANUAL_MODE) {
-      modeChr = 'M';
-    } else {
-      modeChr = 'X';
-    }
+  if (this->pTSV->itfcMode == AUTO_MODE) {
+    modeChr = 'A';
+  } else if (this->pTSV->itfcMode == MANUAL_MODE) {
+    modeChr = 'M';
+  } else {
+    modeChr = 'X';
   }
 
   // 例: "2023/11/13 15:15@A29"
@@ -88,7 +85,7 @@ void MyDisplay::createNormalPrintable()
       this->pTSV->tm.Minute,
       resetChr,
       modeChr,
-      this->pTSV->temperature
+      this->pTSB->temperature
     );
 
   // 例: "R0603 S1719 S11 E32 "

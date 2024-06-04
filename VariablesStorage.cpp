@@ -11,11 +11,6 @@
 
 void VariablesStorage::save()
 {
-  this->pTSB->isManualMode = (this->pTSV->actMode == MANUAL_MODE);
-  if (this->pTSB->isManualMode) {
-    this->pTSB->manualTemperature = this->pTSV->temperature;
-  }
-
   byte* plTsb = (byte*) this->pTSB;
   for (int i = 0; i < sizeof(*this->pTSB); ++i) {
     this->i2cEepromWriteByte(i, plTsb[i]);
@@ -48,8 +43,8 @@ void VariablesStorage::load()
     this->pTSB->pmPlusTempreture2SSBTime = (1 * 60);
     this->pTSB->pmPlusTempreture2 = MIN_PM_PLUS_TEMPERATURE2;
     //
-    this->pTSB->isManualMode = (this->pTSV->actMode == MANUAL_MODE);
-    this->pTSB->manualTemperature = this->pTSV->temperature;
+    this->pTSB->actMode = AUTO_MODE;
+    this->pTSB->temperature = MAX_TEMPERATURE;
     //
     this->pTSB->latlngBag.latitudeIPart = DEFAULT_LATITUDE_IPART;
     this->pTSB->latlngBag.latitudeDPart1 = DEFAULT_LATITUDE_DPART1;
@@ -67,11 +62,7 @@ void VariablesStorage::load()
     //
     this->pTSB->typeEnd = TSB_TYPE_END;
   } else {
-    if (this->pTSB->isManualMode) {
-      this->pTSV->itfcMode = MANUAL_MODE;
-      this->pTSV->actMode = MANUAL_MODE;
-      this->pTSV->temperature = this->pTSB->manualTemperature;
-    }
+    this->pTSV->itfcMode = this->pTSB->actMode;
   }
 }
 

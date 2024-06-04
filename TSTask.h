@@ -27,6 +27,8 @@ public:
   }
 
 public:
+  // 準備処理(一連の処理の前に呼び出すこと)
+  void prepare();
   // タクトスイッチの処理
   void processSwt();
   // モード毎の処理
@@ -38,13 +40,19 @@ private:
 
 private:
   // 午前の温度処理
-  void processAmTask(int currentTime);
+  void processAmTask();
   // 午後の温度処理
-  void processPmTask(int currentTime);
+  void processPmTask();
   // 午後の温度処理2
-  void processPmTask2(int currentTime);
+  void processPmTask2();
   // リセットの処理
-  void processResetTask(int currentTime);
+  void processResetTask();
+  // リセットのチェック処理
+  void processResetCheck();
+  // リセットの設定処理
+  void setReset();
+  // リセットのキャンセル処理
+  void cancelReset();
 
 private:
   // 手動モードの処理
@@ -87,8 +95,14 @@ private:
   VariablesStorage* pStorage = NULL;
   // 日の出・日の入り時刻取得
   Dusk2DawnWrap* pDusk2DawnWrap = NULL;
+  // 現在時刻(分)
+  int currentTime = 0;
+  // 現在時刻(秒)
+  long currentSecTime = 0;
   // 時刻設定モード移行カウンタ
   int setTimeModeTransCount = 0;
+  // 即時リセット以降カウンタ
+  int immediatelyResetTransCount = 0;
 };
 
 

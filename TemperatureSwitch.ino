@@ -97,6 +97,9 @@ void loop()
   gTSV.sunriseTime = gDusk2DawnWrap.getSunriseTime(gTSV.tm.Year + 1970, gTSV.tm.Month, gTSV.tm.Day);
   gTSV.sunsetTime = gDusk2DawnWrap.getSunsetTime(gTSV.tm.Year + 1970, gTSV.tm.Month, gTSV.tm.Day);
 
+  // 準備処理
+  gTSTask.prepare();
+
   // タクトスイッチの処理
   gTSTask.processSwt();
 
@@ -107,7 +110,7 @@ void loop()
   gDisplay.print();
 
   // サーボへ温度を設定する
-  int temperature = (gTSV.bWhileReset) ? MAX_TEMPERATURE : gTSV.temperature;
+  int temperature = (0 <= gTSV.resetStartSecTime) ? MAX_TEMPERATURE : gTSB.temperature;
   gServo.setTemperature(temperature, gTSB.angleCorrection);
 
   delay(125);
