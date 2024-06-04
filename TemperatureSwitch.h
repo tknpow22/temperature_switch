@@ -258,7 +258,7 @@ struct TSVariables {
   int sunsetTime = -1;  // 日の入り時刻
   //
   long resetStartSecTime = -1;  // リセットの開始時刻(秒)
-  long resetEndSecTime = -1;    // リセットの終了時刻(分)
+  long resetEndSecTime = -1;    // リセットの終了時刻(秒)
   // 時刻設定用変数
   tmElements_t setTm;
   bool setTimeOk = false;
