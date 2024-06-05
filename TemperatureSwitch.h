@@ -222,6 +222,9 @@ struct ResetParam {
   int exclusionHourEnd; // リセットから除外する時刻の終了(時)
 };
 
+//
+// 設定保存用
+//
 struct TemperatureSwitchBag {
   char typeBegin;
   int typeVersion;
@@ -256,7 +259,7 @@ struct TSVariables {
   int setTimeModeKind = SET_TIME_UNDEFINED;  // 時刻設定種別
   int sunriseTime = -1;  // 日の出時刻
   int sunsetTime = -1;  // 日の入り時刻
-  //
+  // リセット機能用
   long resetStartSecTime = -1;  // リセットの開始時刻(秒)
   long resetEndSecTime = -1;    // リセットの終了時刻(秒)
   // 時刻設定用変数

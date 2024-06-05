@@ -13,6 +13,13 @@ void TSTask::prepare()
   // 現在時刻を設定する
   this->currentTime = this->pTSV->tm.Hour * 60 + this->pTSV->tm.Minute;
   this->currentSecTime = ((long)this->currentTime * 60) + this->pTSV->tm.Second;
+
+  // タクトスイッチの状態を得る
+  this->autoModeSwt = digitalRead(AUTO_MODE_PIN);
+  this->tempDownSwt = digitalRead(TEMP_DOWN_PIN);
+  this->tempUpSwt = digitalRead(TEMP_UP_PIN);
+  this->setModeSwt = digitalRead(SETTING_MODE_PIN);
+  this->finishSetModeSwt = digitalRead(FINISH_SETTING_MODE_PIN);
 }
 
 //------------------------------------------------------
@@ -21,13 +28,6 @@ void TSTask::prepare()
 
 void TSTask::processSwt()
 {
-  // タクトスイッチの状態を得る
-  this->autoModeSwt = digitalRead(AUTO_MODE_PIN);
-  this->tempDownSwt = digitalRead(TEMP_DOWN_PIN);
-  this->tempUpSwt = digitalRead(TEMP_UP_PIN);
-  this->setModeSwt = digitalRead(SETTING_MODE_PIN);
-  this->finishSetModeSwt = digitalRead(FINISH_SETTING_MODE_PIN);
-
   //
   // タクトスイッチの状態に応じて処理を行う
   //
@@ -289,12 +289,13 @@ void TSTask::processResetTask()
   int currentMinute = this->pTSV->tm.Minute;
   int currentSecond = this->pTSV->tm.Second;
 
+  if (this->pTSB->resetParam.resetPattern == RESET_DAY && 0 == evalHour) {
+    // リセットパターンが日の出から日の入りまでの場合、日の出直後にはリセットしない
+    return;
+  }
+
   if ((evalHour % this->pTSB->resetParam.intervalHour) == 0 && currentMinute == 0 && currentSecond == 0) {
-    // 処理開始時(分は切り捨て)を基準としてリセットを行う時間間隔(時)で、正時にリセットする時間(分)だけリセットを開始する
-    if (this->pTSB->resetParam.resetPattern == RESET_DAY && 0 == evalHour) {
-      // リセットパターンが日の出から日の入りまでの場合、日の出直後にはリセットしない
-      return;
-    }
+    // 処理開始時(分は切り捨て)を基準としてリセットを行う時間間隔(時)で、正時にリセットを開始する
     this->setReset();
   }
 }
