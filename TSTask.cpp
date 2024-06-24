@@ -150,9 +150,6 @@ void TSTask::processAutoMode()
   // 午後の温度処理
   this->processPmTask();
 
-  // 午後の温度処理2
-  this->processPmTask2();
-
   // リセットの処理
   this->processResetTask();
 
@@ -172,33 +169,18 @@ void TSTask::processAmTask()
     int endTime = startTime + this->pTSB->amEndTemperatureTime;
 
     if (this->currentTime < this->pTSV->sunriseTime) {
-      this->pTSB->temperature = this->pTSB->amEndTemperature;
+      // 日の出前は午後の最終温度を設定する
+      this->pTSB->temperature = this->pTSB->pmEndTemperature;
     } else if (this->pTSV->sunriseTime <= this->currentTime && this->currentTime < startTime) {
-      // 朝すぐの時間帯は温度があまり上がらず、かつ換気したいため、ある程度初期温度時間を長くとるために
-      // 日の出から処理開始までの期間は初期温度を設定する
+      // 日の出から処理開始までの期間は午前の初期温度を設定する
       this->pTSB->temperature = this->pTSB->amStartTemperature;
     } else {
-      int timeSpan = endTime - startTime; // NOTE: 現在の仕様では this->pTSB->amEndTemperatureTime に等しい
-      int tempSpan = this->pTSB->amEndTemperature - this->pTSB->amStartTemperature;
-      if (0 < tempSpan) {
-        int timeRange = timeSpan / tempSpan;
-        int timeStep = startTime;
-        int setTemperature = this->pTSB->amStartTemperature;
-
-        while (setTemperature <= this->pTSB->amEndTemperature) {
-          if (timeStep <= this->currentTime && this->currentTime < timeStep + timeRange) {
-            this->pTSB->temperature = setTemperature;
-            break;
-          }
-          timeStep += timeRange;
-          ++setTemperature;
-        }
-        if (this->pTSB->amEndTemperature < setTemperature) {
-          this->pTSB->temperature = this->pTSB->amEndTemperature;
-        }
-      } else /* tempSpan == 0 */ {
-        this->pTSB->temperature = this->pTSB->amEndTemperature;
-      }
+      this->pTSB->temperature = this->processTemperature(
+        startTime,
+        this->pTSB->amStartTemperature,
+        endTime,
+        this->pTSB->amEndTemperature
+      );
     }
   }
 }
@@ -209,33 +191,78 @@ void TSTask::processAmTask()
 
 void TSTask::processPmTask()
 {
-  if ((this->currentTime < this->pTSV->sunriseTime || this->pTSB->pmPlusTempretureTime <= this->currentTime) && 0 < this->pTSB->pmPlusTempreture) {
-    // 日の出前または午後温度の開始時刻(分)を過ぎた場合
-    int plusTempreture = this->pTSB->temperature + this->pTSB->pmPlusTempreture;
-    if (MAX_TEMPERATURE < plusTempreture) {
-      plusTempreture = MAX_TEMPERATURE;
+  if (0 <= this->pTSV->sunsetTime) {
+
+    if (this->currentTime < this->pTSB->pmStartTime) {
+      return;
     }
-    this->pTSB->temperature = plusTempreture;
+
+    int startTime = this->pTSB->pmStartTime;
+    int endTime = this->pTSV->sunsetTime - this->pTSB->pmEndSSBTime;
+
+    if (endTime < startTime) {
+      // 午後の開始時刻が日の入り時刻を超えている場合は、午後の最終温度を設定する
+      this->pTSB->temperature = this->pTSB->pmEndTemperature;
+    } else {
+      this->pTSB->temperature = this->processTemperature(
+          startTime,
+          this->pTSB->pmStartTemperature,
+          endTime,
+          this->pTSB->pmEndTemperature
+        );
+    }
   }
 }
 
 //------------------------------------------------------
-// 午後の温度処理2
+// 温度処理
 //------------------------------------------------------
 
-void TSTask::processPmTask2()
+int TSTask::processTemperature(int startTime, int startTemperature, int endTime, int endTemperature)
 {
-  if (0 <= this->pTSV->sunsetTime) {
-    int plusStartTime = this->pTSV->sunsetTime - this->pTSB->pmPlusTempreture2SSBTime;
-    if ((this->currentTime < this->pTSV->sunriseTime || plusStartTime <= this->currentTime) && 0 < this->pTSB->pmPlusTempreture2) {
-      // 日の出前または午後温度2を開始する日の入り前の時間(分)を過ぎた場合
-      int plusTempreture = this->pTSB->temperature + this->pTSB->pmPlusTempreture2;
-      if (MAX_TEMPERATURE < plusTempreture) {
-        plusTempreture = MAX_TEMPERATURE;
-      }
-      this->pTSB->temperature = plusTempreture;
-    }
+  long startSecTime = (long)startTime * 60;
+  long endSecTime = (long)endTime * 60;
+
+  int temperature = startTemperature;
+  int addTemp = 0;
+  int tempSpan = 0;
+
+  long secTimeSpan = endSecTime - startSecTime;
+
+  if (this->currentSecTime < startSecTime || endSecTime <= this->currentSecTime) {
+    return endTemperature;
   }
+
+  if (startTemperature <= endTemperature) {
+    tempSpan = endTemperature - startTemperature;
+    addTemp = 1;
+  } else {
+    tempSpan = startTemperature - endTemperature;
+    addTemp = -1;
+  }
+  if (tempSpan == 0) {
+    return endTemperature;
+  }
+
+  long secTimeRange = secTimeSpan / (long)tempSpan;
+  if (secTimeRange != 0) {
+    for (long secTime = startSecTime; secTime <= endSecTime; ) {
+      long nextSecTime = secTime + secTimeRange;
+      if (secTime <= this->currentSecTime && this->currentSecTime < nextSecTime) {
+        break;
+      }
+      secTime = nextSecTime;
+      temperature += addTemp;
+    }
+  } else {
+    temperature = endTemperature;
+  }
+
+  if (endSecTime <= this->currentSecTime) {
+    temperature = endTemperature;
+  }
+
+  return temperature;
 }
 
 //------------------------------------------------------
@@ -374,22 +401,22 @@ void TSTask::processSettingMode()
       this->pTSB->amStartTemperature = this->decValue(this->pTSB->amStartTemperature, MIN_AM_START_TEMPERATURE);
     } else if (this->pTSV->setModeKind == SET_AM_END_TEMPERATURE) {
       this->pTSB->amEndTemperature = this->decValue(this->pTSB->amEndTemperature, MIN_AM_END_TEMPERATURE);
-
-      // 午前の最終温度設定が午前の初期温度設定より小さくなった場合、午前の初期温度設定を減らす
-      if (this->pTSB->amEndTemperature < this->pTSB->amStartTemperature) {
-        this->pTSB->amStartTemperature = this->decValue(this->pTSB->amStartTemperature, MIN_AM_START_TEMPERATURE);
-      }
-
+    } else if (this->pTSV->setModeKind == SET_PM_START_TIME) {
+      this->pTSB->pmStartTime = this->decValue(this->pTSB->pmStartTime, MIN_PM_START_TIME, 10);
+    } else if (this->pTSV->setModeKind == SET_PM_END_SSBTIME) {
+      this->pTSB->pmEndSSBTime = this->decValue(this->pTSB->pmEndSSBTime, MIN_PM_END_SSBTIME, 10);
+    } else if (this->pTSV->setModeKind == SET_PM_START_TEMPERATURE) {
+      this->pTSB->pmStartTemperature = this->decValue(this->pTSB->pmStartTemperature, MIN_PM_START_TEMPERATURE);
+    } else if (this->pTSV->setModeKind == SET_PM_END_TEMPERATURE) {
+      this->pTSB->pmEndTemperature = this->decValue(this->pTSB->pmEndTemperature, MIN_PM_END_TEMPERATURE);
     } else if (this->pTSV->setModeKind == SET_ANGLE_CORRECTION) {
       this->pTSB->angleCorrection = this->decValue(this->pTSB->angleCorrection, MIN_ANGLE_CORRECTION);
-    } else if (this->pTSV->setModeKind == SET_PLUS_PM_TEMPERATURE_TIME) {
-      this->pTSB->pmPlusTempretureTime = this->decValue(this->pTSB->pmPlusTempretureTime, MIN_PM_PLUS_TEMPERATURE_TIME, 10);
-    } else if (this->pTSV->setModeKind == SET_PLUS_PM_TEMPERATURE) {
-      this->pTSB->pmPlusTempreture = this->decValue(this->pTSB->pmPlusTempreture, MIN_PM_PLUS_TEMPERATURE);
-    } else if (this->pTSV->setModeKind == SET_PLUS_END_TEMPERATURE_SSBTIME2) {
-      this->pTSB->pmPlusTempreture2SSBTime = this->decValue(this->pTSB->pmPlusTempreture2SSBTime, MIN_PM_PLUS_TEMPERATURE2_SSBTIME, 10);
-    } else if (this->pTSV->setModeKind == SET_PLUS_END_TEMPERATURE2) {
-      this->pTSB->pmPlusTempreture2 = this->decValue(this->pTSB->pmPlusTempreture2, MIN_PM_PLUS_TEMPERATURE2);
+    // } else if (this->pTSV->setModeKind == SET_PLUS_PM_TEMPERATURE) {
+    //   this->pTSB->pmPlusTempreture = this->decValue(this->pTSB->pmPlusTempreture, MIN_PM_PLUS_TEMPERATURE);
+    // } else if (this->pTSV->setModeKind == SET_PLUS_END_TEMPERATURE_SSBTIME2) {
+    //   this->pTSB->pmPlusTempreture2SSBTime = this->decValue(this->pTSB->pmPlusTempreture2SSBTime, MIN_PM_PLUS_TEMPERATURE2_SSBTIME, 10);
+    // } else if (this->pTSV->setModeKind == SET_PLUS_END_TEMPERATURE2) {
+    //   this->pTSB->pmPlusTempreture2 = this->decValue(this->pTSB->pmPlusTempreture2, MIN_PM_PLUS_TEMPERATURE2);
     } else if (this->pTSV->setModeKind == SET_LAT_IPART) {
       this->pTSB->latlngBag.latitudeIPart = this->decValue(this->pTSB->latlngBag.latitudeIPart, MIN_LAT_IPART);
     } else if (this->pTSV->setModeKind == SET_LAT_DPART1) {
@@ -427,24 +454,24 @@ void TSTask::processSettingMode()
       this->pTSB->amEndTemperatureTime = this->incValue(this->pTSB->amEndTemperatureTime, MAX_AM_END_TEMPERATURE_TIME, 10);
     } else if (this->pTSV->setModeKind == SET_AM_START_TEMPERATURE) {
       this->pTSB->amStartTemperature = this->incValue(this->pTSB->amStartTemperature, MAX_AM_START_TEMPERATURE);
-
-      if (this->pTSB->amEndTemperature < this->pTSB->amStartTemperature) {
-        // 午前の初期温度設定が午前の最終温度設定より大きくなった場合、午前の最終温度設定を増やす
-        this->pTSB->amEndTemperature = this->incValue(this->pTSB->amEndTemperature, MAX_AM_END_TEMPERATURE);
-      }
-
     } else if (this->pTSV->setModeKind == SET_AM_END_TEMPERATURE) {
       this->pTSB->amEndTemperature = this->incValue(this->pTSB->amEndTemperature, MAX_AM_END_TEMPERATURE);
+    } else if (this->pTSV->setModeKind == SET_PM_START_TIME) {
+      this->pTSB->pmStartTime = this->incValue(this->pTSB->pmStartTime, MAX_PM_START_TIME, 10);
+    } else if (this->pTSV->setModeKind == SET_PM_END_SSBTIME) {
+      this->pTSB->pmEndSSBTime = this->incValue(this->pTSB->pmEndSSBTime, MAX_PM_END_SSBTIME, 10);
+    } else if (this->pTSV->setModeKind == SET_PM_START_TEMPERATURE) {
+      this->pTSB->pmStartTemperature = this->incValue(this->pTSB->pmStartTemperature, MAX_PM_START_TEMPERATURE);
+    } else if (this->pTSV->setModeKind == SET_PM_END_TEMPERATURE) {
+      this->pTSB->pmEndTemperature = this->incValue(this->pTSB->pmEndTemperature, MAX_PM_END_TEMPERATURE);
     } else if (this->pTSV->setModeKind == SET_ANGLE_CORRECTION) {
       this->pTSB->angleCorrection = this->incValue(this->pTSB->angleCorrection, MAX_ANGLE_CORRECTION);
-    } else if (this->pTSV->setModeKind == SET_PLUS_PM_TEMPERATURE_TIME) {
-      this->pTSB->pmPlusTempretureTime = this->incValue(this->pTSB->pmPlusTempretureTime, MAX_PM_PLUS_TEMPERATURE_TIME, 10);
-    } else if (this->pTSV->setModeKind == SET_PLUS_PM_TEMPERATURE) {
-      this->pTSB->pmPlusTempreture = this->incValue(this->pTSB->pmPlusTempreture, MAX_PM_PLUS_TEMPERATURE);
-    } else if (this->pTSV->setModeKind == SET_PLUS_END_TEMPERATURE_SSBTIME2) {
-      this->pTSB->pmPlusTempreture2SSBTime = this->incValue(this->pTSB->pmPlusTempreture2SSBTime, MAX_PM_PLUS_TEMPERATURE2_SSBTIME, 10);
-    } else if (this->pTSV->setModeKind == SET_PLUS_END_TEMPERATURE2) {
-      this->pTSB->pmPlusTempreture2 = this->incValue(this->pTSB->pmPlusTempreture2, MAX_PM_PLUS_TEMPERATURE2);
+    // } else if (this->pTSV->setModeKind == SET_PLUS_PM_TEMPERATURE) {
+    //   this->pTSB->pmPlusTempreture = this->incValue(this->pTSB->pmPlusTempreture, MAX_PM_PLUS_TEMPERATURE);
+    // } else if (this->pTSV->setModeKind == SET_PLUS_END_TEMPERATURE_SSBTIME2) {
+    //   this->pTSB->pmPlusTempreture2SSBTime = this->incValue(this->pTSB->pmPlusTempreture2SSBTime, MAX_PM_PLUS_TEMPERATURE2_SSBTIME, 10);
+    // } else if (this->pTSV->setModeKind == SET_PLUS_END_TEMPERATURE2) {
+    //   this->pTSB->pmPlusTempreture2 = this->incValue(this->pTSB->pmPlusTempreture2, MAX_PM_PLUS_TEMPERATURE2);
     } else if (this->pTSV->setModeKind == SET_LAT_IPART) {
       this->pTSB->latlngBag.latitudeIPart = this->incValue(this->pTSB->latlngBag.latitudeIPart, MAX_LAT_IPART);
     } else if (this->pTSV->setModeKind == SET_LAT_DPART1) {

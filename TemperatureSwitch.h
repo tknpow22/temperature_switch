@@ -58,32 +58,32 @@
 #define MAX_AM_START_SRATIME  (3 * 60)
 
 // 午前の初期温度の最小・最大
-#define MIN_AM_START_TEMPERATURE 14
-#define MAX_AM_START_TEMPERATURE 28
+#define MIN_AM_START_TEMPERATURE MIN_TEMPERATURE
+#define MAX_AM_START_TEMPERATURE MAX_TEMPERATURE
 
 // 午前の最終温度の最小・最大
-#define MIN_AM_END_TEMPERATURE 16
+#define MIN_AM_END_TEMPERATURE MIN_TEMPERATURE
 #define MAX_AM_END_TEMPERATURE MAX_TEMPERATURE
 
 // 処理開始から午前の最終温度に達するまでの時間(分)の最小・最大
 #define MIN_AM_END_TEMPERATURE_TIME  (0)
 #define MAX_AM_END_TEMPERATURE_TIME  (6 * 60)
 
-// 午後温度で追加する温度の最小・最大
-#define MIN_PM_PLUS_TEMPERATURE  0
-#define MAX_PM_PLUS_TEMPERATURE  5
+// 午後の初期温度の最小・最大
+#define MIN_PM_START_TEMPERATURE MIN_TEMPERATURE
+#define MAX_PM_START_TEMPERATURE MAX_TEMPERATURE
 
-// 午後温度2で追加する温度の最小・最大
-#define MIN_PM_PLUS_TEMPERATURE2  0
-#define MAX_PM_PLUS_TEMPERATURE2  5
+// 午後の最終温度の最小・最大
+#define MIN_PM_END_TEMPERATURE MIN_TEMPERATURE
+#define MAX_PM_END_TEMPERATURE MAX_TEMPERATURE
 
 // 午後温度の開始時刻(分)の最小・最大
-#define MIN_PM_PLUS_TEMPERATURE_TIME  (10 * 60)
-#define MAX_PM_PLUS_TEMPERATURE_TIME  (19 * 60)
+#define MIN_PM_START_TIME  (10 * 60)
+#define MAX_PM_START_TIME  (16 * 60)
 
-// 午後温度2を開始する日の入り前の時間(分)の最小・最大
-#define MIN_PM_PLUS_TEMPERATURE2_SSBTIME  (0)
-#define MAX_PM_PLUS_TEMPERATURE2_SSBTIME  (5 * 60)
+// 午後の処理終了から日の入りまでの時間(分)の最小・最大
+#define MIN_PM_END_SSBTIME  (0)
+#define MAX_PM_END_SSBTIME  (3 * 60)
 
 //
 // リセットパラメータ
@@ -127,12 +127,12 @@
 #define SET_UNDEFINED (-1)  // 未定義
 #define SET_AM_START_TEMPERATURE 0 // 午前の初期温度
 #define SET_AM_END_TEMPERATURE 1 // 午前の最終温度
-#define SET_PLUS_PM_TEMPERATURE_TIME  2 // 午後温度の開始時刻(分)
-#define SET_PLUS_PM_TEMPERATURE  3 // 午後温度での追加温度
-#define SET_PLUS_END_TEMPERATURE_SSBTIME2  4 // 午後温度2を開始する日の入り前の時間(分)
-#define SET_PLUS_END_TEMPERATURE2  5 // 午後温度2での追加温度
-#define SET_AM_START_SRATIME  6 // 日の出から処理開始までの時間(分)
-#define SET_AM_END_TEMPERATURE_TIME  7 // 処理開始から午前の最終温度に達するまでの時間(分)
+#define SET_AM_START_SRATIME  2 // 日の出から処理開始までの時間(分)
+#define SET_AM_END_TEMPERATURE_TIME  3 // 処理開始から午前の最終温度に達するまでの時間(分)
+#define SET_PM_START_TEMPERATURE  4 // 午後の初期温度
+#define SET_PM_END_TEMPERATURE  5 // 午後の最終温度
+#define SET_PM_START_TIME 6 // 午後温度の開始時刻(分)
+#define SET_PM_END_SSBTIME  7 // 処理終了から日の入りまでの時間(分)
 #define SET_ANGLE_CORRECTION  8 // 角度補正
 #define SET_RESET_PATTERN  9 // リセットパターン
 #define SET_RESET_INTERVAL_HOUR 10  // リセットを行う時間間隔(時)
@@ -198,7 +198,7 @@
 
 #define TSB_TYPE_BEGIN  'T'
 #define TSB_TYPE_END  'S'
-#define TSB_TYPE_VERSION  7
+#define TSB_TYPE_VERSION  8
 
 // 緯度・経度保存用
 struct LatLngBag {
@@ -228,16 +228,18 @@ struct ResetParam {
 struct TemperatureSwitchBag {
   char typeBegin;
   int typeVersion;
-  //
+  // 午前の処理
   int amStartSRATime; // 日の出から処理開始までの時間(分)  
   int amEndTemperatureTime;  // 処理開始から午前の最終温度に達するまでの時間(分)
   int amStartTemperature;  // 午前の初期温度
   int amEndTemperature;  // 午前の最終温度
+  // 午後の処理
+  int pmStartTime; // 午後温度の開始時刻(分)
+  int pmEndSSBTime; // 午後の処理終了から日の入りまでの時間(分)
+  int pmStartTemperature;  // 午後の初期温度
+  int pmEndTemperature;  // 午後の最終温度
+  //
   int angleCorrection; // 角度補正
-  int pmPlusTempretureTime; // 午後温度の開始時刻(分)
-  int pmPlusTempreture; // 午後温度での追加温度
-  int pmPlusTempreture2SSBTime;  // 午後温度2を開始する日の入り前の時間(分)
-  int pmPlusTempreture2; // 午後温度2での追加温度
   // 現在の設定を覚える
   int actMode;  // 動作モード(AUTO_MODE、MANUAL_MODE のいずれか)
   int temperature;  // 現在の温度設定(MANUAL_MODE の時のみ有効)

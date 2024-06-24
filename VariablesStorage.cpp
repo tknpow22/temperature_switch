@@ -36,12 +36,14 @@ void VariablesStorage::load()
     this->pTSB->amStartSRATime = (2 * 60);
     this->pTSB->amEndTemperatureTime = (2 * 60);
     this->pTSB->amStartTemperature = 20;
-    this->pTSB->amEndTemperature = 28;
+    this->pTSB->amEndTemperature = 27;
+    //
+    this->pTSB->pmStartTime = (13 * 60);
+    this->pTSB->pmEndSSBTime = (1 * 60);
+    this->pTSB->pmStartTemperature = 28;
+    this->pTSB->pmEndTemperature = 28;
+    //
     this->pTSB->angleCorrection = 0;
-    this->pTSB->pmPlusTempretureTime = (12 * 60);
-    this->pTSB->pmPlusTempreture = MIN_PM_PLUS_TEMPERATURE;
-    this->pTSB->pmPlusTempreture2SSBTime = (1 * 60);
-    this->pTSB->pmPlusTempreture2 = MIN_PM_PLUS_TEMPERATURE2;
     //
     this->pTSB->actMode = AUTO_MODE;
     this->pTSB->temperature = MAX_TEMPERATURE;

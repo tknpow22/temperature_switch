@@ -43,8 +43,12 @@ private:
   void processAmTask();
   // 午後の温度処理
   void processPmTask();
-  // 午後の温度処理2
-  void processPmTask2();
+
+private:
+  // 温度処理
+  int processTemperature(int startTime, int startTemperature, int endTime, int endTemperature);
+
+private:
   // リセットの処理
   void processResetTask();
   // リセットのチェック処理
