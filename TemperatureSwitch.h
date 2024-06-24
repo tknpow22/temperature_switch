@@ -127,10 +127,10 @@
 #define SET_UNDEFINED (-1)  // 未定義
 #define SET_AM_START_TEMPERATURE 0 // 午前の初期温度
 #define SET_AM_END_TEMPERATURE 1 // 午前の最終温度
-#define SET_AM_START_SRATIME  2 // 日の出から処理開始までの時間(分)
-#define SET_AM_END_TEMPERATURE_TIME  3 // 処理開始から午前の最終温度に達するまでの時間(分)
-#define SET_PM_START_TEMPERATURE  4 // 午後の初期温度
-#define SET_PM_END_TEMPERATURE  5 // 午後の最終温度
+#define SET_PM_START_TEMPERATURE  2 // 午後の初期温度
+#define SET_PM_END_TEMPERATURE  3 // 午後の最終温度
+#define SET_AM_START_SRATIME  4 // 日の出から処理開始までの時間(分)
+#define SET_AM_END_TEMPERATURE_TIME  5 // 処理開始から午前の最終温度に達するまでの時間(分)
 #define SET_PM_START_TIME 6 // 午後温度の開始時刻(分)
 #define SET_PM_END_SSBTIME  7 // 処理終了から日の入りまでの時間(分)
 #define SET_ANGLE_CORRECTION  8 // 角度補正

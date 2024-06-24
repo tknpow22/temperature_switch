@@ -13,22 +13,22 @@ LCD表示内容
 	//   下記値の設定時はモードに X を表示する。
 	//   リセットについては後述
 
-#RHH:mm SHH:mm
-	// R(日の出時刻)HH=時:mm=分 S(日の入り時刻)HH=時:mm=分
+#SR HH:mm SS HH:mm
+	// SR(日の出時刻) HH=時:mm=分 SS(日の入り時刻) HH=時:mm=分
 
-#AM STT ETT
-	// STT=午前の初期温度 ETT=午前の最終温度
+#ASTT ETT PSTT ETT
+	// A STT=午前の初期温度 ETT=午前の最終温度
+	// P STT=午後の初期温度 ETT=午後の最終温度
 
-#SHm-HH:mm EHm-HH:mm
+#ASHm-HH:mm EHm-HH:mm
+	// 午前の温度処理用
 	// S(日の出から処理開始までの時間と時刻)H=時間m=分(10分単位)-HH=時:mm=分
 	// E(処理開始から処理終了までの時間と時刻)H=時間m=分(10分単位)-HH=時:mm=分
 
 #これ以降は設定時のみ表示される
 
-#PM STT ETT
-	// STT=午後の初期温度 ETT=午後の最終温度
-
-#SHH:mm EHm-HH:mm
+#PSHH:mm EHm-HH:mm
+	// 午後の温度処理用
 	// S(午後温度の開始時刻)HH=時mm=分
 	// E(処理終了から日の入りまでの時間(分))H=時間m=分(10分単位)-HH=時:mm=分
 
