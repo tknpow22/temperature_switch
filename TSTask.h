@@ -33,6 +33,8 @@ public:
   void processSwt();
   // モード毎の処理
   void processMode();
+  // 温度を設定する
+  void setTemperature();
 
 private:
   // 自動モードの処理
@@ -65,6 +67,8 @@ private:
   void processSettingMode();
   // 時刻設定モードの処理
   void processTimeSettingMode();
+  // サーボ設定モードの処理
+  void processServoSettingMode();
 
 private:
   // モードの設定
@@ -103,8 +107,8 @@ private:
   int currentTime = 0;
   // 現在時刻(秒)
   long currentSecTime = 0;
-  // 時刻設定モード移行カウンタ
-  int setTimeModeTransCount = 0;
+  // 時刻・サーボ設定モード移行カウンタ
+  int setSettingModeTransCount = 0;
   // 即時リセット以降カウンタ
   int immediatelyResetTransCount = 0;
 };

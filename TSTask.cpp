@@ -33,9 +33,9 @@ void TSTask::processSwt()
   //
 
   if (this->autoModeSwt == BUTTON_ON) {
-    ++this->setTimeModeTransCount;
+    ++this->setSettingModeTransCount;
   } else if (this->autoModeSwt == BUTTON_OFF) {
-    this->setTimeModeTransCount = 0;
+    this->setSettingModeTransCount = 0;
   }
 
   if (this->finishSetModeSwt == BUTTON_ON) {
@@ -44,16 +44,26 @@ void TSTask::processSwt()
     this->immediatelyResetTransCount = 0;
   }
 
-  if (this->pTSV->itfcMode == AUTO_MODE && 10 < this->setTimeModeTransCount) {
+  if (this->pTSV->itfcMode == AUTO_MODE && 10 < this->setSettingModeTransCount) {
     this->setMode(TIME_SETTING_MODE);
 
     this->cancelReset();
 
     this->pTSV->setTimeModeKind = MIN_TIME_SETTING_MODE_KIND;
-    this->setTimeModeTransCount = 0;
+    this->setSettingModeTransCount = 0;
     
     this->pTSV->setTm = this->pTSV->tm;
     this->pTSV->setTimeOk = false;
+
+  } else if (this->pTSV->itfcMode == TIME_SETTING_MODE && 10 < this->setSettingModeTransCount) {
+
+    this->setMode(SERVO_SETTING_MODE);
+
+    this->cancelReset();
+
+    this->pTSV->setServoParamModeKind = MIN_SERVO_SETTING_MODE_KIND;
+    this->setSettingModeTransCount = 0;
+
   } else if ((this->pTSV->itfcMode == AUTO_MODE || this->pTSV->itfcMode == MANUAL_MODE) && 10 < this->immediatelyResetTransCount) {
     this->setReset();
     this->immediatelyResetTransCount = 0;
@@ -92,17 +102,36 @@ void TSTask::processSwt()
       this->pTSV->setTimeModeKind = MIN_TIME_SETTING_MODE_KIND;
     }
 
-  } else if ((this->pTSV->itfcMode == SETTING_MODE || this->pTSV->itfcMode == TIME_SETTING_MODE) && this->finishSetModeSwt == BUTTON_ON) {
+  } else if (this->pTSV->itfcMode == SERVO_SETTING_MODE && this->setModeSwt == BUTTON_ON) {
+    
+    if (this->autoModeSwt == BUTTON_ON) {
+      --this->pTSV->setServoParamModeKind;
+    } else {
+      ++this->pTSV->setServoParamModeKind;
+    }
+    
+    if (this->pTSV->setServoParamModeKind < MIN_SERVO_SETTING_MODE_KIND) {
+      this->pTSV->setServoParamModeKind = MAX_SERVO_SETTING_MODE_KIND;
+    } else if (MAX_SERVO_SETTING_MODE_KIND < this->pTSV->setServoParamModeKind) {
+      this->pTSV->setServoParamModeKind = MIN_SERVO_SETTING_MODE_KIND;
+    }
+
+  } else if ((this->pTSV->itfcMode == SETTING_MODE || this->pTSV->itfcMode == TIME_SETTING_MODE || this->pTSV->itfcMode == SERVO_SETTING_MODE) && this->finishSetModeSwt == BUTTON_ON) {
     if (this->pTSV->itfcMode == SETTING_MODE) {
       this->pTSV->setModeKind = SET_UNDEFINED;
       this->pDusk2DawnWrap->reset(&this->pTSB->latlngBag);        
       this->pStorage->save();
     } else if (this->pTSV->itfcMode == TIME_SETTING_MODE) {
       this->pTSV->setTimeModeKind = SET_TIME_UNDEFINED;
+
       if (this->pTSV->setTimeOk) {
         this->pRtc->write(this->pTSV->setTm);
         this->pRtc->read(this->pTSV->tm);
       }
+    } else if (this->pTSV->itfcMode == SERVO_SETTING_MODE) {
+      this->pTSV->setServoParamModeKind = SET_SERVO_PARAM_UNDEFINED;
+
+      this->pStorage->save();
     }
 
     this->setMode(AUTO_MODE);
@@ -116,22 +145,41 @@ void TSTask::processSwt()
 
 void TSTask::processMode()
 {
-  if (this->pTSB->actMode == AUTO_MODE) {
-    // 自動
-    this->processAutoMode();
+  if (this->pTSV->itfcMode == SERVO_SETTING_MODE) {
+    // サーボ設定中は自動・手動の処理が走るとまずいので、
+    // なにもさせない。
+  } else {
+    if (this->pTSB->actMode == AUTO_MODE) {
+      // 自動
+      this->processAutoMode();
 
-  } else if (this->pTSB->actMode == MANUAL_MODE) {
-    // 手動
-    this->processManualMode();
+    } else if (this->pTSB->actMode == MANUAL_MODE) {
+      // 手動
+      this->processManualMode();
+    }
   }
     
   if (this->pTSV->itfcMode == SETTING_MODE) {
     // 設定
     this->processSettingMode();
-
   } else if (this->pTSV->itfcMode == TIME_SETTING_MODE) {
     // 時刻設定
     this->processTimeSettingMode();
+  } else if (this->pTSV->itfcMode == SERVO_SETTING_MODE) {
+    // サーボ設定
+    this->processServoSettingMode();
+  }
+}
+
+//------------------------------------------------------
+// 温度を設定する
+//------------------------------------------------------
+
+void TSTask::setTemperature()
+{
+  if (this->pTSV->itfcMode != SERVO_SETTING_MODE) {
+    int temperature = (0 <= this->pTSV->resetStartSecTime) ? MAX_TEMPERATURE : this->pTSB->temperature;
+    this->pServo->setTemperatureWithCache(temperature, this->pTSB->minTemperaturePulse, this->pTSB->maxTemperaturePulse);
   }
 }
 
@@ -409,8 +457,6 @@ void TSTask::processSettingMode()
       this->pTSB->pmStartTemperature = this->decValue(this->pTSB->pmStartTemperature, MIN_PM_START_TEMPERATURE);
     } else if (this->pTSV->setModeKind == SET_PM_END_TEMPERATURE) {
       this->pTSB->pmEndTemperature = this->decValue(this->pTSB->pmEndTemperature, MIN_PM_END_TEMPERATURE);
-    } else if (this->pTSV->setModeKind == SET_ANGLE_CORRECTION) {
-      this->pTSB->angleCorrection = this->decValue(this->pTSB->angleCorrection, MIN_ANGLE_CORRECTION);
     } else if (this->pTSV->setModeKind == SET_LAT_IPART) {
       this->pTSB->latlngBag.latitudeIPart = this->decValue(this->pTSB->latlngBag.latitudeIPart, MIN_LAT_IPART);
     } else if (this->pTSV->setModeKind == SET_LAT_DPART1) {
@@ -458,8 +504,6 @@ void TSTask::processSettingMode()
       this->pTSB->pmStartTemperature = this->incValue(this->pTSB->pmStartTemperature, MAX_PM_START_TEMPERATURE);
     } else if (this->pTSV->setModeKind == SET_PM_END_TEMPERATURE) {
       this->pTSB->pmEndTemperature = this->incValue(this->pTSB->pmEndTemperature, MAX_PM_END_TEMPERATURE);
-    } else if (this->pTSV->setModeKind == SET_ANGLE_CORRECTION) {
-      this->pTSB->angleCorrection = this->incValue(this->pTSB->angleCorrection, MAX_ANGLE_CORRECTION);
     } else if (this->pTSV->setModeKind == SET_LAT_IPART) {
       this->pTSB->latlngBag.latitudeIPart = this->incValue(this->pTSB->latlngBag.latitudeIPart, MAX_LAT_IPART);
     } else if (this->pTSV->setModeKind == SET_LAT_DPART1) {
@@ -539,6 +583,33 @@ void TSTask::processTimeSettingMode()
     } else if (this->pTSV->setTimeModeKind == SET_TIME_OK) {
       this->pTSV->setTimeOk = !this->pTSV->setTimeOk;
     }
+  }
+}
+
+//------------------------------------------------------
+// サーボ設定の処理
+//------------------------------------------------------
+
+void TSTask::processServoSettingMode()
+{
+  if (this->tempDownSwt == BUTTON_ON) {
+    if (this->pTSV->setServoParamModeKind == SET_SERVO_PARAM_MIN_TEMPERATURE_PULSE) {
+      this->pTSB->minTemperaturePulse = this->decValue(this->pTSB->minTemperaturePulse, MIN_SERVO_PULSE);
+    } else if (this->pTSV->setServoParamModeKind == SET_SERVO_PARAM_MAX_TEMPERATURE_PULSE) {
+      this->pTSB->maxTemperaturePulse = this->decValue(this->pTSB->maxTemperaturePulse, MAX_SERVO_PULSE - SERVO_PULSE_ADJUSTMENT_RANGE);
+    }
+  } else if (this->tempUpSwt == BUTTON_ON) {
+    if (this->pTSV->setServoParamModeKind == SET_SERVO_PARAM_MIN_TEMPERATURE_PULSE) {
+      this->pTSB->minTemperaturePulse = this->incValue(this->pTSB->minTemperaturePulse, MIN_SERVO_PULSE + SERVO_PULSE_ADJUSTMENT_RANGE);
+    } else if (this->pTSV->setServoParamModeKind == SET_SERVO_PARAM_MAX_TEMPERATURE_PULSE) {
+      this->pTSB->maxTemperaturePulse = this->incValue(this->pTSB->maxTemperaturePulse, MAX_SERVO_PULSE);
+    }
+  }
+
+  if (this->pTSV->setServoParamModeKind == SET_SERVO_PARAM_MIN_TEMPERATURE_PULSE) {
+    this->pServo->setTemperature(MIN_TEMPERATURE, this->pTSB->minTemperaturePulse, this->pTSB->maxTemperaturePulse);
+  } else if (this->pTSV->setServoParamModeKind == SET_SERVO_PARAM_MAX_TEMPERATURE_PULSE) {
+    this->pServo->setTemperature(MAX_TEMPERATURE, this->pTSB->minTemperaturePulse, this->pTSB->maxTemperaturePulse);
   }
 }
 

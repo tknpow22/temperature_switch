@@ -30,7 +30,7 @@ void MyDisplay::print()
       startVirRow = 4;
     } else if (SET_LAT_IPART <= this->pTSV->setModeKind) {
       startVirRow = 3;
-    } else if (SET_ANGLE_CORRECTION <= this->pTSV->setModeKind) {
+    } else if (SET_RESET_PATTERN <= this->pTSV->setModeKind) {
       startVirRow = 2;
     } else if (SET_PM_START_TIME <= this->pTSV->setModeKind) {
       startVirRow = 1;
@@ -46,10 +46,12 @@ void MyDisplay::print()
 
 void MyDisplay::createPrintable()
 {
-  if (this->pTSV->itfcMode != TIME_SETTING_MODE) {
-    createNormalPrintable();
-  } else {
+  if (this->pTSV->itfcMode == TIME_SETTING_MODE) {
     createSetTimeModePrintable();
+  } else if (this->pTSV->itfcMode == SERVO_SETTING_MODE) {
+    createServoSettingModePrintable();
+  } else {
+    createNormalPrintable();
   }
 }
 
@@ -143,7 +145,7 @@ void MyDisplay::createNormalPrintable()
   }
 
 
-  // 例: "C00 RY H1 M1 S00 E00"
+  // 例: "RY H1 M1 S00 E00    "
   {
     char resetPatternChr = 'N';
     if (this->pTSB->resetParam.resetPattern == RESET_NONE) {
@@ -154,9 +156,7 @@ void MyDisplay::createNormalPrintable()
       resetPatternChr = 'D';
     }
 
-    sprintf(this->displayLines[5], "%c%02d %c%c %c%1d %c%1d %c%02d %c%02d",
-        (this->pTSV->itfcMode == SETTING_MODE && this->pTSV->setModeKind == SET_ANGLE_CORRECTION) ? 'c' : 'C',
-        this->pTSB->angleCorrection,
+    sprintf(this->displayLines[5], "%c%c %c%1d %c%1d %c%02d %c%02d    ",
         (this->pTSV->itfcMode == SETTING_MODE && this->pTSV->setModeKind == SET_RESET_PATTERN) ? 'r' : 'R',
         resetPatternChr,
         (this->pTSV->itfcMode == SETTING_MODE && this->pTSV->setModeKind == SET_RESET_INTERVAL_HOUR) ? 'h' : 'H',
@@ -232,6 +232,32 @@ void MyDisplay::createSetTimeModePrintable()
   sprintf(this->displayLines[3], "                    ");
 }
 
+//------------------------------------------------------
+// サーボ設定時の表示文字列を作成する
+//------------------------------------------------------
+
+void MyDisplay::createServoSettingModePrintable()
+{
+  // 例: "T12: >0600          "
+  sprintf(this->displayLines[0], "T%02d: %c%04d          ",
+      MIN_TEMPERATURE,
+      (this->pTSV->setServoParamModeKind == SET_SERVO_PARAM_MIN_TEMPERATURE_PULSE) ? '>' : ' ',
+      this->pTSB->minTemperaturePulse
+    );
+
+  // 例: "T33: >2275          "
+  sprintf(this->displayLines[1], "T%02d: %c%04d          ",
+      MAX_TEMPERATURE,
+      (this->pTSV->setServoParamModeKind == SET_SERVO_PARAM_MAX_TEMPERATURE_PULSE) ? '>' : ' ',
+      this->pTSB->maxTemperaturePulse
+    );
+
+  // 例: "                    "
+  sprintf(this->displayLines[2], "                    ");
+
+  // 例: "                    "
+  sprintf(this->displayLines[3], "                    ");
+}
 //------------------------------------------------------
 // ディスプレイに表示する
 //------------------------------------------------------

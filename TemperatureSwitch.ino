@@ -109,9 +109,9 @@ void loop()
   // ディスプレイに表示する
   gDisplay.print();
 
-  // サーボへ温度を設定する
-  int temperature = (0 <= gTSV.resetStartSecTime) ? MAX_TEMPERATURE : gTSB.temperature;
-  gServo.setTemperature(temperature, gTSB.angleCorrection);
+  // 温度を設定する
+  gTSTask.setTemperature();
+
 
   delay(125);
 

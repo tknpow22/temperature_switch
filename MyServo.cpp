@@ -16,28 +16,41 @@ uint8_t MyServo::attach(int pin)
 }
 
 //------------------------------------------------------
+// 温度を設定する(キャッシュあり)
+//------------------------------------------------------
+
+void MyServo::setTemperatureWithCache(int temperature, int minTemperaturePulse, int maxTemperaturePulse)
+{
+  if (this->prevTemperature != temperature) {
+    this->setTemperature(temperature, minTemperaturePulse, maxTemperaturePulse);
+    this->prevTemperature = temperature;
+  }
+}
+
+//------------------------------------------------------
 // 温度を設定する
 //------------------------------------------------------
 
-void MyServo::setTemperature(int temperature, int angleCorrection)
+void MyServo::setTemperature(int temperature, int minTemperaturePulse, int maxTemperaturePulse)
 {
-  if (this->prevTemperature != temperature) {
-    double pulse = MIN_SERVO_PULSE + (this->PULSE_PER_TEMP * (temperature - MIN_TEMPERATURE));
+  double pulsePerTemp = (double) (maxTemperaturePulse - minTemperaturePulse) / (double) (MAX_TEMPERATURE - MIN_TEMPERATURE);
 
-    // 補正を行う
-    pulse += this->PULSE_PER_DEGREE * angleCorrection;
+  // NOTE: @DEBUG
+  // {
+  //   int nPulsePerTemp = round(pulsePerTemp);
+  //   Serial.println(nPulsePerTemp);
+  // }
 
-    int nPulse = round(pulse);
+  double pulse = minTemperaturePulse + (pulsePerTemp * (temperature - MIN_TEMPERATURE));
 
-    nPulse = min(nPulse, MAX_SERVO_PULSE);
-    nPulse = max(nPulse, MIN_SERVO_PULSE);
+  int nPulse = round(pulse);
 
-    //Serial.println(nPulse);
-    this->servo.writeMicroseconds(nPulse);
-    delay(10);
+  nPulse = min(nPulse, MAX_SERVO_PULSE);
+  nPulse = max(nPulse, MIN_SERVO_PULSE);
+  //Serial.println(nPulse);
+  this->servo.writeMicroseconds(nPulse);
 
-    this->prevTemperature = temperature;
-  }
+  delay(10);
 }
 
 //------------------------------------------------------

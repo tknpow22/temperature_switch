@@ -48,6 +48,8 @@ private:
   void createNormalPrintable();
   // 時刻設定時の表示文字列を作成する
   void createSetTimeModePrintable();
+  // サーボ設定時の表示文字列を作成する
+  void createServoSettingModePrintable();
   // ディスプレイに表示する
   void printDisplay(int startRow);
 

@@ -43,7 +43,8 @@ void VariablesStorage::load()
     this->pTSB->pmStartTemperature = 28;
     this->pTSB->pmEndTemperature = 28;
     //
-    this->pTSB->angleCorrection = 0;
+    this->pTSB->minTemperaturePulse = MIN_SERVO_PULSE;
+    this->pTSB->maxTemperaturePulse = MAX_SERVO_PULSE;
     //
     this->pTSB->actMode = AUTO_MODE;
     this->pTSB->temperature = MAX_TEMPERATURE;
